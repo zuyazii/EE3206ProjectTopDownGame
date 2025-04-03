@@ -2,11 +2,15 @@ package main;
 
 import entity.Entity;
 import entity.Player;
+import event.EventObject;
 import object.SuperObject;
 import tiles.TileManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class GamePanel extends JPanel implements Runnable {
     // SCREEN SETTINGS
@@ -56,10 +60,15 @@ public class GamePanel extends JPanel implements Runnable {
     public final int dialogueState = 3;
     public final int battleState = 4;
 
-    // Fields for door transition
-    public boolean doorTransitionActive = false;
-    public long doorTransitionStartTime;
-    public int doorNextMap;
+    // --- Transition Fields ---
+    private boolean transitionActive = false;
+    private long transitionStartTime;
+    private long transitionDuration;
+    private int nextMap;
+    private boolean mapChanged = false;  // to track when the map switch occurs
+
+    // --- Event Objects ---
+    private List<EventObject> eventObjects = new ArrayList<>();
 
     // BATTLE
     public Battle battle;
@@ -125,45 +134,46 @@ public class GamePanel extends JPanel implements Runnable {
         if (gameState == playState) {
             player.update();
 
-            // Check door collisions:
-            if (gameState == playState && !doorTransitionActive) {
-                // Create the player's absolute collision rectangle.
-                Rectangle playerRect = player.getCollisionArea();
-
-                for (int i = 0; i < superObject[currentMap].length; i++) {
-                    if (superObject[currentMap][i] != null && superObject[currentMap][i] instanceof object.OBJ_Door) {
-                        System.out.println("test");
-                        object.OBJ_Door door = (object.OBJ_Door) superObject[currentMap][i];
-                        // Create door's absolute collision rectangle.
-                        Rectangle doorRect = door.getCollisionArea();
-//                        System.out.println("Door: " + doorRect.x + " " + doorRect.y + " " + doorRect.width + " " + doorRect.height);
-//                        System.out.println("Player: " + playerRect.x + " " + playerRect.y + " " + playerRect.width + " " + playerRect.height);
-                        if (playerRect.intersects(doorRect)) {
-                            System.out.println("moving to next map");
-                            startDoorTransition(door.nextmapNum);
-                            break;  // Stop checking after triggering a door.
-                        }
-                    }
+            // Process event objects.
+            for (EventObject event : eventObjects) {
+                if (event.checkCollision(this)) {
+                    event.triggerEvent(this);
                 }
             }
 
-            // NPC updates, etc.
-            for (int i = 0; i < npc.length; i++) {
+            // Update NPCs.
+            for (int i = 0; i < npc[currentMap].length; i++) {
                 if (npc[currentMap][i] != null) {
                     npc[currentMap][i].update();
                 }
             }
         }
 
+        // Process fade transition.
+        if (transitionActive) {
+            long elapsed = System.currentTimeMillis() - transitionStartTime;
+            long halfDuration = transitionDuration / 2;
+
+            // At half time, switch the map if not already done.
+            if (elapsed > halfDuration && !mapChanged) {
+                completeTransition();
+                mapChanged = true;
+            }
+            // End transition when total duration has passed.
+            if (elapsed >= transitionDuration) {
+                transitionActive = false;
+            }
+        }
 
         if (gameState == pauseState) {
-            // nothing
+            // Pause state logic.
         }
     }
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
         // TILE SCREEN
         if (gameState == titleState) {
@@ -192,27 +202,19 @@ public class GamePanel extends JPanel implements Runnable {
                 }
             }
 
+            // Draw event objects (like doors).
+            for (EventObject event : eventObjects) {
+                event.draw(g2d, this);
+            }
+
             ui.draw(g2d);
         }
 
-        // If door transition is active, draw a dark overlay.
-        if (doorTransitionActive) {
-            // Here we simply draw a semi-transparent black rectangle over the whole screen.
-            g2d.setColor(new Color(0, 0, 0, 200)); // Adjust alpha as needed.
+        // Draw dark overlay during map transition.
+        if (transitionActive) {
+            g2d.setColor(new java.awt.Color(0, 0, 0, 255));
             g2d.fillRect(0, 0, screenWidth, screenHeight);
         }
-
-        // For debugging: draw player's collision bounds
-        player.drawCollisionBounds(g2d);
-
-        // For debugging: draw collision bounds for each door in the current map
-        for (int i = 0; i < superObject[currentMap].length; i++) {
-            if (superObject[currentMap][i] != null && superObject[currentMap][i] instanceof object.OBJ_Door) {
-                ((object.OBJ_Door)superObject[currentMap][i]).drawCollisionBounds(g2d, this);
-            }
-        }
-
-
         g2d.dispose();
     }
 
@@ -229,11 +231,49 @@ public class GamePanel extends JPanel implements Runnable {
         se.play();
     }
 
-    public void startDoorTransition(int nextMap) {
-        doorTransitionActive = true;
-        doorTransitionStartTime = System.currentTimeMillis();
-//        doorNextMap = nextMap;
-//        assetSetter.setObject(nextMap);
-//        assetSetter.setNPC(nextMap);
+    // Called from AssetSetter to register an event object.
+    public void addEventObject(EventObject event) {
+        eventObjects.add(event);
     }
+
+    public boolean isTransitionActive() {
+        return transitionActive;
+    }
+
+    // Start a fade transition. Total duration should be 3000 ms.
+    public void startTransition(int nextMap, long duration) {
+        transitionActive = true;
+        this.nextMap = nextMap;
+        transitionDuration = duration;
+        transitionStartTime = System.currentTimeMillis();
+        mapChanged = false;
+    }
+
+    // Once transition time has passed, complete the map change.
+    private void completeTransition() {
+        eventObjects.clear();
+
+        currentMap = nextMap;
+        assetSetter.setObject(currentMap);
+        assetSetter.setNPC(currentMap);
+
+        // Set player's new start position based on the map.
+        // For example, for map 1, you might want to position the player at (5, 5) tiles.
+        switch (currentMap) {
+            case 0:
+                player.worldx = tileSize * 25;
+                player.worldy = tileSize * 26;
+                player.direction = "up";
+                break;
+            case 1:
+                player.worldx = tileSize * 27;  // example starting x coordinate for map 1
+                player.worldy = tileSize * 26;  // example starting y coordinate for map 1
+                player.direction = "right";
+                break;
+            // Add additional cases for other maps as needed.
+        }
+
+        transitionActive = false;
+    }
+
 }

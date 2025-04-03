@@ -25,7 +25,7 @@ public class Player extends Entity {
         screenX = gamePanel.screenWidth /2 - (gamePanel.tileSize/2);
         screenY = gamePanel.screenHeight/2 - (gamePanel.tileSize/2);
 
-        collisionBounds = new Rectangle(8, 16, 32, 36);
+        collisionBounds = new Rectangle(8, 16, 32, 40);
         solidAreaDefaultX = collisionBounds.x;
         solidAreaDefaultY = collisionBounds.y;
 
@@ -35,10 +35,10 @@ public class Player extends Entity {
     }
 
     public void setDefaultValues () {
-        worldx = gamePanel.tileSize * 27;
+        worldx = gamePanel.tileSize * 25;
         worldy = gamePanel.tileSize * 26;
         speed = 4;
-        direction = "left";
+        direction = "up";
     }
 
     public void getPlayerImage() {
@@ -196,6 +196,4 @@ public class Player extends Entity {
         g2.setColor(Color.RED);
         g2.drawRect(drawX, drawY, collisionBounds.width, collisionBounds.height);
     }
-
-
 }

@@ -97,12 +97,6 @@ public class UI {
         if (gp.gameState == gp.battleState) {
             drawBattleScreen(gp.npc[gp.currentMap][0].enemyNum);
         }
-        // TRANSISITON STATE
-        if (gp.doorTransitionActive) {
-            // Using alpha of 100 for a lighter dark overlay.
-            g2.setColor(new Color(0, 0, 0, 100));
-            g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
-        }
     }
 
     private void drawTitleScreen() {

@@ -1,6 +1,5 @@
 package entity;
 
-
 import main.GamePanel;
 import main.UtilityTool;
 
@@ -145,14 +144,24 @@ public class Entity {
         return image;
     }
 
-    public void speak()
-    {
-        if (dialogues[dialogueIndex] == null) {
+    public void speak() {
+        // If the dialogue session was ended previously, reinitialize it.
+        if (dialogueIndex == -1) {
             dialogueIndex = 0;
         }
-        gamePanel.ui.currentDialogue = dialogues[dialogueIndex];
-        dialogueIndex++;
 
+        // If there's a next dialogue line, show it.
+        if (dialogues[dialogueIndex] != null) {
+            gamePanel.ui.currentDialogue = dialogues[dialogueIndex];
+            dialogueIndex++;
+        } else {
+            // End the dialogue session:
+            gamePanel.ui.currentDialogue = "";
+            dialogueIndex = -1;  // Mark that this dialogue session has ended.
+            gamePanel.gameState = gamePanel.playState;  // Allow the player to walk away.
+        }
+
+        // Make NPC face the player.
         switch (gamePanel.player.direction) {
             case "up":
                 direction = "down";
