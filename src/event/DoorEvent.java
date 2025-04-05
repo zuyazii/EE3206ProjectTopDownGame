@@ -41,7 +41,7 @@ public class DoorEvent extends EventObject {
         if (doorImage != null) {
             g2.drawImage(doorImage, screenX, screenY, gp.tileSize, gp.tileSize, null);
         }
-        drawCollisionBounds(g2, gp);
+//        drawCollisionBounds(g2, gp);          // For Debugging, show the collision bound
     }
 
     public void drawCollisionBounds(Graphics2D g2, GamePanel gp) {

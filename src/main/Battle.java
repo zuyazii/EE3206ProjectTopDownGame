@@ -134,6 +134,7 @@ public class Battle {
             if (isPlayer) {
                 // Player attacks enemy: trigger enemy "take_hit" animation.
                 triggerAnimation("take_hit", 30);
+                gp.playSE(5);
                 System.out.println("Player attacks enemy for " + damage + " damage.");
             } else {
                 // Enemy attacks player: trigger enemy "cleave" animation.

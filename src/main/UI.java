@@ -89,7 +89,7 @@ public class UI {
 
             // Draw dialogue options on top when active
             if (showDialogueOptions) {
-                drawDialogueOption();
+                drawDialogueOption(gp.npc[gp.currentMap][0].optionDialog);
             }
 
         }
@@ -105,7 +105,7 @@ public class UI {
 
         // TITLE NAME
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 96f));
-        String text = "A VERY QUICK GAME";
+        String text = "ERM";
         int x = getXForCenteredText(text);
         int y = gp.tileSize * 3;
         // TITLE TEXT SHADOW
@@ -166,7 +166,7 @@ public class UI {
         }
     }
 
-    public void drawDialogueOption() {
+    public void drawDialogueOption(String message) {
         // Define window dimensions (you can tweak these values)
         int width = gp.tileSize * 6;
         int height = gp.tileSize * 3;
@@ -179,14 +179,20 @@ public class UI {
         // Set font for the options (matching the dialogue style)
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32f));
 
+        // Descritive Text
+        int dTextY = y + gp.tileSize;
+        int dTextX = getXForCenteredText(message);
+
+        g2.drawString(message, dTextX, dTextY);
+
         // Define positions for the options text
         int textY = y + gp.tileSize * 2; // vertically centered within the subwindow
         int yesX = x + (int)(gp.tileSize * 1.5);
         int noX = x + gp.tileSize * 4;
 
         // Draw the "YES" and "NO" options
-        g2.drawString("NO", yesX, textY);
-        g2.drawString("YES", noX, textY);
+        g2.drawString("YES", yesX, textY);
+        g2.drawString("NO", noX, textY);
 
         // Draw selection arrow. Here, commandNum is used as the selection index (0 for YES, 1 for NO).
         // Adjust the arrow position accordingly.

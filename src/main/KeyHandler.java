@@ -25,15 +25,18 @@ public class KeyHandler implements KeyListener {
             if (code == KeyEvent.VK_W) {
                 if (gamePanel.ui.commandNum > 0) {
                     gamePanel.ui.commandNum--;
+                    gamePanel.playSE(9);
                 }
             }
             if (code == KeyEvent.VK_S) {
                 if (gamePanel.ui.commandNum < 2) {
                     gamePanel.ui.commandNum++;
+                    gamePanel.playSE(9);
                 }
             }
             if (code == KeyEvent.VK_ENTER) {
                 if (gamePanel.ui.commandNum == 0) {
+                    gamePanel.playSE(9);
                     gamePanel.gameState = gamePanel.playState;
                     gamePanel.playMusic(0);
                 }
@@ -50,20 +53,20 @@ public class KeyHandler implements KeyListener {
         else if (gamePanel.gameState == gamePanel.battleState) {
             switch (gamePanel.ui.battleCommandNum) {
                 case 0:
-                    if (code == KeyEvent.VK_D) { gamePanel.ui.battleCommandNum = 1; }
-                    if (code == KeyEvent.VK_S) { gamePanel.ui.battleCommandNum = 3; }
+                    if (code == KeyEvent.VK_D) { gamePanel.ui.battleCommandNum = 1; gamePanel.playSE(9); }
+                    if (code == KeyEvent.VK_S) { gamePanel.ui.battleCommandNum = 3; gamePanel.playSE(9); }
                     break;
                 case 1:
-                    if (code == KeyEvent.VK_A) { gamePanel.ui.battleCommandNum = 0; }
-                    if (code == KeyEvent.VK_S) { gamePanel.ui.battleCommandNum = 2; }
+                    if (code == KeyEvent.VK_A) { gamePanel.ui.battleCommandNum = 0; gamePanel.playSE(9); }
+                    if (code == KeyEvent.VK_S) { gamePanel.ui.battleCommandNum = 2; gamePanel.playSE(9); }
                     break;
                 case 2:
-                    if (code == KeyEvent.VK_W) { gamePanel.ui.battleCommandNum = 1; }
-                    if (code == KeyEvent.VK_A) { gamePanel.ui.battleCommandNum = 3; }
+                    if (code == KeyEvent.VK_W) { gamePanel.ui.battleCommandNum = 1; gamePanel.playSE(9); }
+                    if (code == KeyEvent.VK_A) { gamePanel.ui.battleCommandNum = 3; gamePanel.playSE(9); }
                     break;
                 case 3:
-                    if (code == KeyEvent.VK_W) { gamePanel.ui.battleCommandNum = 0; }
-                    if (code == KeyEvent.VK_D) { gamePanel.ui.battleCommandNum = 2; }
+                    if (code == KeyEvent.VK_W) { gamePanel.ui.battleCommandNum = 0; gamePanel.playSE(9); }
+                    if (code == KeyEvent.VK_D) { gamePanel.ui.battleCommandNum = 2; gamePanel.playSE(9); }
                     break;
             }
             System.out.println(gamePanel.ui.battleCommandNum);

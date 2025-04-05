@@ -20,6 +20,8 @@ public class ENEMY_Boss01 extends Enemy {
         enemyNum = 1;
         hp = 100;
 
+        optionDialog = "Continue Battle?";
+
         // Load idle animation images.
         down1 = setup("/enemies/boss_02/01_demon_idle/demon_idle_1");
         down2 = setup("/enemies/boss_02/01_demon_idle/demon_idle_2");
