@@ -9,11 +9,12 @@ import java.io.IOException;
 public class DoorEvent extends EventObject {
     private int nextMap;
     private BufferedImage doorImage;
+    // New flag: becomes true when the event’s dialogue has been displayed.
+    private boolean triggered = false;
 
     public DoorEvent(int worldx, int worldy, int width, int height, int nextMap, GamePanel gamePanel) {
         super(worldx, worldy, width, height);
         this.nextMap = nextMap;
-        // Load the door image.
         try {
             doorImage = ImageIO.read(getClass().getResourceAsStream("/object/door.png"));
         } catch (IOException e) {
@@ -25,10 +26,34 @@ public class DoorEvent extends EventObject {
 
     @Override
     public void triggerEvent(GamePanel gp) {
-        // Trigger the map transition only if one is not active.
+        // Only trigger if not already triggered.
+        if (!triggered) {
+            gp.ui.currentDialogue = "Do you want to enter?";
+            gp.ui.showDialogueOptions = true;
+            gp.gameState = gp.dialogueState;
+            gp.currentDoorEvent = this;
+            triggered = true;
+        }
+    }
+
+    /**
+     * Resets the triggered flag so that the door event can trigger again.
+     * Call this when the player leaves the door’s collision area.
+     */
+    public void resetTriggered() {
+        triggered = false;
+    }
+
+    public boolean isTriggered() {
+        return triggered;
+    }
+
+    /**
+     * When YES is selected, this method is called to initiate the map transition.
+     */
+    public void triggerDoorTransition(GamePanel gp) {
         if (!gp.isTransitionActive()) {
             System.out.println("Door triggered: transitioning to map " + nextMap);
-            // Start a fade transition that lasts 3000 ms (3 secs).
             gp.startTransition(nextMap, 3000);
         }
     }
@@ -37,15 +62,14 @@ public class DoorEvent extends EventObject {
     public void draw(Graphics2D g2, GamePanel gp) {
         int screenX = worldx - gp.player.worldx + gp.player.screenX;
         int screenY = worldy - gp.player.worldy + gp.player.screenY;
-        // Draw the door image scaled to one tile width and two tile heights.
         if (doorImage != null) {
             g2.drawImage(doorImage, screenX, screenY, gp.tileSize, gp.tileSize, null);
         }
-//        drawCollisionBounds(g2, gp);          // For Debugging, show the collision bound
+        // Optionally draw collision bounds for debugging.
+        // drawCollisionBounds(g2, gp);
     }
 
     public void drawCollisionBounds(Graphics2D g2, GamePanel gp) {
-        // Convert world coordinates to screen coordinates for collision bounds.
         int screenX = worldx - gp.player.worldx + gp.player.screenX + collisionBounds.x;
         int screenY = worldy - gp.player.worldy + gp.player.screenY + collisionBounds.y;
         g2.setColor(Color.RED);

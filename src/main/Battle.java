@@ -16,6 +16,13 @@ public class Battle {
     // Animation trigger fields
     private int roundAnimationTimer = 0;
 
+    public boolean awaitingPendingAction = false;
+    private Object pendingAttacker;
+    private Object pendingDefender;
+    private Action pendingAction;
+    private boolean pendingIsPlayer;
+    public boolean pendingEscapeSuccess = false;  // Flag to indicate escape success.
+
     // The possible actions
     public enum Action {
         ESCAPE, INVENTORY, DEFENSE, ATTACK;
@@ -54,9 +61,11 @@ public class Battle {
 
     // Execute a full round of battle.
     public void executeRound() {
-        // Reset defending flags at the start of the round.
+        // Reset defending flags and new pending flags.
         player.isDefending = false;
         enemy.isDefending = false;
+        pendingEscapeSuccess = false;
+        awaitingPendingAction = false;
 
         Action playerAction = getPlayerAction();
         Action enemyAction = getEnemyAction();
@@ -64,50 +73,59 @@ public class Battle {
         System.out.println("Player action: " + playerAction);
         System.out.println("Enemy action: " + enemyAction);
 
-        // Decide order based on priority.
+        // Determine turn order.
         int playerPrio = getPriority(playerAction);
         int enemyPrio  = getPriority(enemyAction);
         boolean playerFirst;
-        if(playerPrio < enemyPrio) {
+        if (playerPrio < enemyPrio) {
             playerFirst = true;
-        } else if(playerPrio > enemyPrio) {
+        } else if (playerPrio > enemyPrio) {
             playerFirst = false;
         } else {
             playerFirst = random.nextBoolean();
         }
 
-        // Execute actions in order with immediate HP check.
         if (playerFirst) {
+            // Execute the player's action.
             executeAction(player, enemy, playerAction, true);
             if (enemy.hp <= 0) {
                 System.out.println("Enemy defeated immediately!");
-                gp.gameState = gp.playState;  // Or a victory state if you have one.
-                return;  // End the round immediately.
-            }
-            executeAction(enemy, player, enemyAction, false);
-            if (player.hp <= 0) {
-                System.out.println("Player defeated!");
-                gp.gameState = gp.playState;  // Or a defeat/game-over state.
+                gp.gameState = gp.playState;
                 return;
             }
+            // If player's action was escape and it succeeded, pendingEscapeSuccess will be true.
+            if (playerAction == Action.ESCAPE && pendingEscapeSuccess) {
+                // Stop here and wait for the user to press Enter.
+                return;
+            }
+            // Otherwise, store enemy's action for later execution.
+            pendingAttacker = enemy;
+            pendingDefender = player;
+            pendingAction = enemyAction;
+            pendingIsPlayer = false;
+            awaitingPendingAction = true;
         } else {
+            // Enemy acts first.
             executeAction(enemy, player, enemyAction, false);
             if (player.hp <= 0) {
                 System.out.println("Player defeated!");
                 gp.gameState = gp.playState;
                 return;
             }
-            executeAction(player, enemy, playerAction, true);
-            if (enemy.hp <= 0) {
-                System.out.println("Enemy defeated immediately!");
-                gp.gameState = gp.playState;
+            // If enemy action was escape and successful,
+            // you might similarly block the next action. (Optional)
+            if (enemyAction == Action.ESCAPE && pendingEscapeSuccess) {
                 return;
             }
+            // Store player's action as pending.
+            pendingAttacker = player;
+            pendingDefender = enemy;
+            pendingAction = playerAction;
+            pendingIsPlayer = true;
+            awaitingPendingAction = true;
         }
-
-        // Reset battle command for the next round.
-        gp.ui.battleCommandNum = 0;
     }
+
 
 
     // A helper to get action priority (lower value means the action goes first)
@@ -123,7 +141,7 @@ public class Battle {
 
     // Execute a single action.
     // isPlayer indicates if the attacker is the player.
-    private void executeAction(Object attacker, Object defender, Action action, boolean isPlayer) {
+    public void executeAction(Object attacker, Object defender, Action action, boolean isPlayer) {
         if (action == Action.ATTACK) {
             int atkVal = getAttackValue(attacker);
             int defVal = (isDefending(defender)) ? getDefenseValue(defender) : 0;
@@ -136,10 +154,12 @@ public class Battle {
                 triggerAnimation("take_hit", 30);
                 gp.playSE(5);
                 System.out.println("Player attacks enemy for " + damage + " damage.");
+                gp.ui.showBattleNotification("Player Attacked. Enemy takes " + damage + " damage!");
             } else {
                 // Enemy attacks player: trigger enemy "cleave" animation.
 //                triggerAnimation("cleave", 30);
                 System.out.println("Enemy attacks player for " + damage + " damage.");
+                gp.ui.showBattleNotification("Enemy Attacked. Player takes " + damage + " damage!");
                 // Trigger red vignette effect on the UI for, say, 20 frames.
                 gp.ui.triggerRedVignette(20);
             }
@@ -147,20 +167,27 @@ public class Battle {
         else if (action == Action.DEFENSE) {
             markAsDefending(attacker);
             System.out.println((isPlayer ? "Player" : "Enemy") + " defends.");
+            gp.ui.showBattleNotification((isPlayer ? "Player" : "Enemy") + " is defending!");
         }
         else if (action == Action.ESCAPE) {
-            boolean escaped = random.nextBoolean(); // 50% chance
+            boolean escaped = random.nextBoolean(); // 50% chance.
             if (escaped) {
                 System.out.println((isPlayer ? "Player" : "Enemy") + " escapes successfully!");
                 if (isPlayer) {
-                    gp.gameState = gp.playState;
+                    gp.ui.showBattleEscapeNotification("Player escaped!");
+                    pendingEscapeSuccess = true;
+                } else {
+                    gp.ui.showBattleNotification("Enemy escaped!");
                 }
             } else {
                 System.out.println((isPlayer ? "Player" : "Enemy") + " fails to escape.");
+                gp.ui.showBattleNotification((isPlayer ? "Player" : "Enemy") + " failed to escape!");
             }
         }
+
         else if (action == Action.INVENTORY) {
             System.out.println((isPlayer ? "Player" : "Enemy") + " uses inventory (not implemented).");
+            gp.ui.showBattleNotification((isPlayer ? "Player" : "Enemy") + " used inventory (not implemented).");
         }
     }
 
@@ -245,6 +272,30 @@ public class Battle {
         roundAnimationTimer = duration;
         gp.ui.setEnemyState(anim);
     }
+
+    public void resumeRound() {
+        // If a successful escape occurred, transition to playState.
+        if (pendingEscapeSuccess) {
+            gp.gameState = gp.playState;
+            pendingEscapeSuccess = false;
+            return;
+        }
+
+        // Otherwise, if there's a pending action, execute it.
+        if (!awaitingPendingAction) return;
+
+        executeAction(pendingAttacker, pendingDefender, pendingAction, pendingIsPlayer);
+        awaitingPendingAction = false;
+
+        if ((pendingDefender instanceof Player && ((Player)pendingDefender).hp <= 0) ||
+                (pendingDefender instanceof Entity && ((Entity)pendingDefender).hp <= 0)) {
+            gp.gameState = gp.playState;
+            return;
+        }
+
+        gp.ui.battleCommandNum = 0;
+    }
+
 
 
 }

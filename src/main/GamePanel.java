@@ -69,6 +69,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     // --- Event Objects ---
     private List<EventObject> eventObjects = new ArrayList<>();
+    public event.DoorEvent currentDoorEvent = null;
 
     // BATTLE
     public Battle battle;
@@ -130,14 +131,31 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void update() {
-
         if (gameState == playState) {
             player.update();
 
-            // Process event objects.
-            for (EventObject event : eventObjects) {
-                if (event.checkCollision(this)) {
-                    event.triggerEvent(this);
+            // Process door events.
+            if (currentDoorEvent == null) {
+                for (EventObject event : eventObjects) {
+                    if (event instanceof event.DoorEvent) {
+                        event.DoorEvent door = (event.DoorEvent) event;
+                        // Only trigger if the door is not already triggered and collision is detected.
+                        if (!door.isTriggered() && door.checkCollision(this)) {
+                            door.triggerEvent(this);
+                            currentDoorEvent = door;
+                            break;  // Trigger one door event at a time.
+                        }
+                    } else {
+                        if (event.checkCollision(this)) {
+                            event.triggerEvent(this);
+                        }
+                    }
+                }
+            } else {
+                // If a door event is active, check if the player is still colliding.
+                if (!currentDoorEvent.checkCollision(this)) {
+                    // Player left this door; clear the active door event.
+                    currentDoorEvent = null;
                 }
             }
 
@@ -149,17 +167,26 @@ public class GamePanel extends JPanel implements Runnable {
             }
         }
 
+        // At the end, reset door events for which collision is no longer occurring.
+        // This ensures that door events can re-trigger upon re-entry.
+        for (EventObject event : eventObjects) {
+            if (event instanceof event.DoorEvent) {
+                event.DoorEvent door = (event.DoorEvent) event;
+                if (door.isTriggered() && !door.checkCollision(this)) {
+                    door.resetTriggered();
+                }
+            }
+        }
+
         // Process fade transition.
         if (transitionActive) {
             long elapsed = System.currentTimeMillis() - transitionStartTime;
             long halfDuration = transitionDuration / 2;
 
-            // At half time, switch the map if not already done.
             if (elapsed > halfDuration && !mapChanged) {
                 completeTransition();
                 mapChanged = true;
             }
-            // End transition when total duration has passed.
             if (elapsed >= transitionDuration) {
                 transitionActive = false;
             }
@@ -169,6 +196,10 @@ public class GamePanel extends JPanel implements Runnable {
             // Pause state logic.
         }
     }
+
+
+
+
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);

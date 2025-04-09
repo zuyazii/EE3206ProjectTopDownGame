@@ -72,8 +72,15 @@ public class KeyHandler implements KeyListener {
             System.out.println(gamePanel.ui.battleCommandNum);
 
             // When ENTER is pressed in battle mode, set a flag or directly call executeRound.
+            // In KeyHandler.java, within battle state block:
             if (code == KeyEvent.VK_ENTER) {
-                if (gamePanel.battle != null) {
+                if (gamePanel.ui.isBattleNotificationActive()) {
+                    gamePanel.ui.dismissBattleNotification();
+                    if (gamePanel.battle != null &&
+                            (gamePanel.battle.awaitingPendingAction || gamePanel.battle.pendingEscapeSuccess)) {
+                        gamePanel.battle.resumeRound();
+                    }
+                } else if (gamePanel.battle != null) {
                     gamePanel.battle.executeRound();
                 }
             }
@@ -112,37 +119,42 @@ public class KeyHandler implements KeyListener {
 
         // DIALOGUE STATE
         else if (gamePanel.gameState == gamePanel.dialogueState) {
-            // When dialogue options are active, process option input.
             if (gamePanel.ui.showDialogueOptions) {
                 // Use A/Left and D/Right to change selection.
                 if (code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
-                    gamePanel.ui.optionNum = 0;  // Select YES.
+                    gamePanel.ui.optionNum = 0;  // YES
+                    gamePanel.playSE(9);
                 }
                 if (code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
-                    gamePanel.ui.optionNum = 1;  // Select NO.
+                    gamePanel.ui.optionNum = 1;  // NO
+                    gamePanel.playSE(9);
                 }
-                // Confirm the selection.
+                // Confirm selection.
                 if (code == KeyEvent.VK_ENTER) {
-                    if (gamePanel.ui.optionNum == 1) {
-                        // NO selected: change state to PLAY.
+                    if (gamePanel.currentDoorEvent != null) {
+                        if (gamePanel.ui.optionNum == 0) {  // YES selected.
+                            gamePanel.currentDoorEvent.triggerDoorTransition(gamePanel);
+                        } else {  // NO selected.
+                            System.out.println("Player declined to enter the door.");
+                            // Do not mark the door as responded (or triggered remains true) so that it
+                            // won’t trigger repeatedly while still colliding.
+                        }
+                        // In either case, clear the dialogue.
+                        gamePanel.currentDoorEvent = null;
+                        gamePanel.ui.showDialogueOptions = false;
+                        gamePanel.ui.currentDialogue = "";
                         gamePanel.gameState = gamePanel.playState;
                     } else {
-                        // YES selected: change state to BATTLE.
-                        gamePanel.battle = new Battle(gamePanel, gamePanel.player, gamePanel.npc[gamePanel.currentMap][0]);
-                        gamePanel.gameState = gamePanel.battleState;
+                        // Process other dialogue options if needed.
+                        gamePanel.ui.showDialogueOptions = false;
+                        gamePanel.ui.currentDialogue = "";
+                        gamePanel.gameState = gamePanel.playState;
                     }
-                    gamePanel.ui.showDialogueOptions = false;
                 }
-            }
-            // Otherwise, if no dialogue option is active, use ENTER to progress dialogue.
-            else {
+            } else {
                 if (code == KeyEvent.VK_ENTER) {
-                    // Typically you might call a method to progress dialogue here.
-                    // For example:
-                    // gamePanel.npc[someIndex].speak();
-                    // For now, we'll simply set a flag.
                     gamePanel.gameState = gamePanel.playState;
-                    enterPressed = true;
+                    gamePanel.ui.showDialogueOptions = false;
                 }
             }
         }

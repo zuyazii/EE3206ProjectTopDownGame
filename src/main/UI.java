@@ -21,7 +21,6 @@ public class UI {
     public int commandNum = 0;
     public int battleCommandNum = 0;
     public int optionNum = 0;
-
     public boolean showDialogueOptions = false;
 
     // Animation arrays for the demon/boss
@@ -35,12 +34,15 @@ public class UI {
     private int enemySpriteCounter = 0;
     private int enemySpriteNum = 1;      // Current frame index (1-based for convenience)
     private String enemyState = "idle";  // Current animation state
-
     private boolean animationLocked = false;
-
     private int redVignetteTimer = 0;
 
-
+    // Battle Notification Fields
+    private String battleNotificationMessage = "";
+    private boolean battleNotificationOn = false;
+    // Removed timer fields since we no longer want auto-dismiss.
+    // All notifications are persistent—they only clear when Enter is pressed.
+    private boolean battleNotificationPersistent = true;
 
     public UI(GamePanel gp) {
         this.gp = gp;
@@ -64,6 +66,26 @@ public class UI {
         messageOn = true;
     }
 
+    // Show a battle notification that remains on screen until dismissed.
+    public void showBattleNotification(String msg) {
+        battleNotificationMessage = msg;
+        battleNotificationOn = true;
+        // All battle notifications are now persistent (auto-dismiss is removed).
+        battleNotificationPersistent = true;
+    }
+
+    // No updateBattleNotification() method is needed since there is no timer.
+
+    // These methods let KeyHandler check/dismiss the notification.
+    public boolean isBattleNotificationActive() {
+        return battleNotificationOn;
+    }
+
+    public void dismissBattleNotification() {
+        battleNotificationOn = false;
+        battleNotificationPersistent = false;
+    }
+
     public void draw(Graphics2D g2) {
         this.g2 = g2;
         g2.setFont(maruMonica);
@@ -75,7 +97,7 @@ public class UI {
         }
         // PLAY STATE
         if (gp.gameState == gp.playState) {
-
+            // (Draw play state components here as needed)
         }
         // PAUSE STATE
         if (gp.gameState == gp.pauseState) {
@@ -86,12 +108,10 @@ public class UI {
             if (!showDialogueOptions) {
                 drawDialogueScreen();
             }
-
-            // Draw dialogue options on top when active
+            // Use the currentDialogue string (set by the event)
             if (showDialogueOptions) {
-                drawDialogueOption(gp.npc[gp.currentMap][0].optionDialog);
+                drawDialogueOption(currentDialogue);
             }
-
         }
         // BATTLE STATE
         if (gp.gameState == gp.battleState) {
@@ -160,7 +180,7 @@ public class UI {
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32f));
         x += gp.tileSize;
         y += gp.tileSize;
-        for (String line:currentDialogue.split("\n")) {
+        for (String line: currentDialogue.split("\n")) {
             g2.drawString(line, x, y);
             y += 40;
         }
@@ -179,7 +199,7 @@ public class UI {
         // Set font for the options (matching the dialogue style)
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32f));
 
-        // Descritive Text
+        // Descriptive text
         int dTextY = y + gp.tileSize;
         int dTextX = getXForCenteredText(message);
 
@@ -195,16 +215,11 @@ public class UI {
         g2.drawString("NO", noX, textY);
 
         // Draw selection arrow. Here, commandNum is used as the selection index (0 for YES, 1 for NO).
-        // Adjust the arrow position accordingly.
         if (optionNum == 0) {
             g2.drawString(">", yesX - gp.tileSize, textY);
         } else if (optionNum == 1) {
             g2.drawString(">", noX - gp.tileSize, textY);
         }
-
-        // For this example, return true if "YES" is currently selected,
-        // false if "NO" is selected. Adjust as necessary for your game logic.
-        System.out.println("drawDialogueOption");
     }
 
     public void drawBattleScreen(int enemyNum) {
@@ -213,86 +228,94 @@ public class UI {
         String text = "HP: " + gp.npc[gp.currentMap][0].hp;
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 32f));
         int x = getXForCenteredText(text);
-        int y = (int) (gp.tileSize);
+        int y = (int)(gp.tileSize);
         g2.drawString(text, x, y);
 
         // Coordinates to draw the enemy
         x = gp.screenWidth / 2 - (gp.tileSize * 2) / 2 + gp.tileSize;
-        y = (int) (gp.tileSize * 4.5);
+        y = (int)(gp.tileSize * 4.5);
 
-        // Update which frame we should be on
+        // Update which frame we should be on and draw the enemy
         updateEnemyAnimation();
-        // Now draw the current frame
         drawEnemyAnimation(g2, x, y);
 
-        // Subwindow with battle menu, etc.
+        // Define the subwindow for the battle menu/notification.
         int subX = (int)(gp.tileSize * 2.5);
         int subY = gp.tileSize * 7;
         int width = gp.screenWidth - (gp.tileSize * 5);
-        int height = (int) (gp.tileSize * 4.5);
+        int height = (int)(gp.tileSize * 4.5);
+
+        // Draw the subwindow background.
         drawSubWindow(subX, subY, width, height);
-        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48f));
 
-        // Player HP
-        text = "HP: " + gp.player.hp;
-        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 25f));
-        x = subX + (int)(0.1 * gp.tileSize);
-        y = subY - (int)(0.2 * gp.tileSize);
-        g2.drawString(text, x, y);
-        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48f));
+        // Check if a battle notification is active.
+        if (battleNotificationOn) {
+            // Draw the notification message centered in the subwindow.
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 38f));
+            int centeredX = getXForCenteredText(battleNotificationMessage);
+            int textY = subY + (int)(gp.tileSize * 1.8);
+            g2.drawString(battleNotificationMessage, centeredX, textY);
 
+            // Draw the prompt telling the player how to dismiss it.
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 18f));
+            String prompt = "- Press Enter to continue -";
+            centeredX = getXForCenteredText(prompt);
+            g2.drawString(prompt, centeredX, (int)(textY + gp.tileSize * 1.2));
+            // Note: No timer update here since notifications are persistent.
+        } else {
+            // No notification: draw the battle menu commands normally.
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48f));
+            text = "HP: " + gp.player.hp;
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 25f));
+            x = subX + (int)(0.1 * gp.tileSize);
+            y = subY - (int)(0.2 * gp.tileSize);
+            g2.drawString(text, x, y);
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48f));
 
-        // MENU
-        text = "ATTACK";
-        x = (int)(gp.tileSize * 4.4);
-        y = (int)(gp.tileSize * 8.5);
-        g2.drawString(text, x, y);
-        if (battleCommandNum == 0) {
-            g2.drawString(">", (x - (int)(gp.tileSize / 1.4)), y);
-        }
-        text = "DEFENSE";
-        x = (int)(gp.tileSize * 9.2);
-        g2.drawString(text, x, y);
-        if (battleCommandNum == 1) {
-            g2.drawString(">", (x - (int)(gp.tileSize / 1.4)), y);
-        }
-        text = "ESCAPE";
-        y += (int)(gp.tileSize * 2);
-        g2.drawString(text, x, y);
-        if (battleCommandNum == 2) {
-            g2.drawString(">", (x - (int)(gp.tileSize / 1.4)), y);
-        }
-        text = "INVENTORY";
-        x = (int)(gp.tileSize * 4.4);
-        g2.drawString(text, x, y);
-        if (battleCommandNum == 3) {
-            g2.drawString(">", (x - (int)(gp.tileSize / 1.4)), y);
+            // Draw the battle command texts.
+            text = "ATTACK";
+            x = (int)(gp.tileSize * 4.4);
+            y = (int)(gp.tileSize * 8.5);
+            g2.drawString(text, x, y);
+            if (battleCommandNum == 0) {
+                g2.drawString(">", (x - (int)(gp.tileSize / 1.4)), y);
+            }
+            text = "DEFENSE";
+            x = (int)(gp.tileSize * 9.2);
+            g2.drawString(text, x, y);
+            if (battleCommandNum == 1) {
+                g2.drawString(">", (x - (int)(gp.tileSize / 1.4)), y);
+            }
+            text = "ESCAPE";
+            y += (int)(gp.tileSize * 2);
+            g2.drawString(text, x, y);
+            if (battleCommandNum == 2) {
+                g2.drawString(">", (x - (int)(gp.tileSize / 1.4)), y);
+            }
+            text = "INVENTORY";
+            x = (int)(gp.tileSize * 4.4);
+            g2.drawString(text, x, y);
+            if (battleCommandNum == 3) {
+                g2.drawString(">", (x - (int)(gp.tileSize / 1.4)), y);
+            }
         }
 
         // Update and draw round animation effects (if any)
-        if(gp.battle != null) {
+        if (gp.battle != null) {
             gp.battle.updateRoundAnimation();
             gp.battle.drawRoundAnimation(g2);
         }
 
-        if(gp.battle != null) {
-            gp.battle.updateRoundAnimation();
-            gp.battle.drawRoundAnimation(g2);
-        }
-
-        // Draw red vignette overlay if triggered
+        // Draw red vignette overlay if triggered.
         if (redVignetteTimer > 0) {
-            // Create a semi-transparent red color
-            Color redOverlay = new Color(255, 0, 0, 100);  // adjust alpha (transparency) as needed
+            Color redOverlay = new Color(255, 0, 0, 100);
             g2.setColor(redOverlay);
-            // Draw a rectangle covering the entire screen
             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
-            redVignetteTimer--; // Decrease timer each frame
+            redVignetteTimer--;
         }
     }
 
     public void drawSubWindow(int x, int y, int width, int height) {
-
         Color c = new Color(0, 0, 0, 210);
         g2.setColor(c);
         g2.fillRoundRect(x, y, width, height, 35, 35);
@@ -306,15 +329,13 @@ public class UI {
     public void drawPauseScreen() {
         String text = "Pause";
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 60f));
-
-        int y = gp.screenHeight/2;
+        int y = gp.screenHeight / 2;
         int x = getXForCenteredText(text);
-
         g2.drawString(text, x, y);
     }
 
     public int getXForCenteredText(String text) {
-        int length = (int)g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
         return (gp.screenWidth / 2 - length / 2);
     }
 
@@ -322,31 +343,25 @@ public class UI {
         // Load "idle" frames
         demonIdleFrames = new BufferedImage[6];
         for (int i = 0; i < 6; i++) {
-            demonIdleFrames[i] = loadImage("/enemies/boss_02/01_demon_idle/demon_idle_" + (i+1));
+            demonIdleFrames[i] = loadImage("/enemies/boss_02/01_demon_idle/demon_idle_" + (i + 1));
         }
-
-        // Load "walk" frames (example, if you have 6 frames)
-//        demonWalkFrames = new BufferedImage[12];
-//        for (int i = 0; i < 12; i++) {
-//            demonWalkFrames[i] = loadImage("/enemies/boss_02/02_demon_walk/demon_walk_" + (i+1));
-//        }
 
         // Load "cleave" frames (example, if you have 6 frames)
         demonCleaveFrames = new BufferedImage[15];
         for (int i = 0; i < 15; i++) {
-            demonCleaveFrames[i] = loadImage("/enemies/boss_02/03_demon_cleave/demon_cleave_" + (i+1));
+            demonCleaveFrames[i] = loadImage("/enemies/boss_02/03_demon_cleave/demon_cleave_" + (i + 1));
         }
 
         // Load "take hit" frames
         demonTakeHitFrames = new BufferedImage[5];
         for (int i = 0; i < 5; i++) {
-            demonTakeHitFrames[i] = loadImage("/enemies/boss_02/04_demon_take_hit/demon_take_hit_" + (i+1));
+            demonTakeHitFrames[i] = loadImage("/enemies/boss_02/04_demon_take_hit/demon_take_hit_" + (i + 1));
         }
 
         // Load "death" frames
         demonDeathFrames = new BufferedImage[22];
         for (int i = 0; i < 22; i++) {
-            demonDeathFrames[i] = loadImage("/enemies/boss_02/05_demon_death/demon_death_" + (i+1));
+            demonDeathFrames[i] = loadImage("/enemies/boss_02/05_demon_death/demon_death_" + (i + 1));
         }
     }
 
@@ -360,33 +375,42 @@ public class UI {
     }
 
     public void updateEnemyAnimation() {
-        // Increase the counter
         enemySpriteCounter++;
-
-        // Change frames every 10 ticks (adjust as needed for speed)
         if (enemySpriteCounter > 10) {
             enemySpriteNum++;
             enemySpriteCounter = 0;
             int frameCount = getFrameCountForState(enemyState);
-
             if (enemySpriteNum > frameCount) {
-                // Animation for non-idle states should finish fully before reverting.
                 if (!enemyState.equals("idle")) {
-                    // Lock is active until animation finishes; here we revert to idle.
                     enemyState = "idle";
                     enemySpriteNum = 1;
                     animationLocked = false;
                 } else {
-                    // For idle, just loop.
                     enemySpriteNum = 1;
                 }
             }
         }
     }
 
+    private int getFrameCountForState(String state) {
+        switch(state) {
+            case "idle":
+                return demonIdleFrames != null ? demonIdleFrames.length : 0;
+            case "walk":
+                return demonWalkFrames != null ? demonWalkFrames.length : 0;
+            case "cleave":
+                return demonCleaveFrames != null ? demonCleaveFrames.length : 0;
+            case "take_hit":
+                return demonTakeHitFrames != null ? demonTakeHitFrames.length : 0;
+            case "death":
+                return demonDeathFrames != null ? demonDeathFrames.length : 0;
+            default:
+                return 1;
+        }
+    }
+
     private void drawEnemyAnimation(Graphics2D g2, int x, int y) {
         BufferedImage frame = null;
-
         switch (enemyState) {
             case "idle":
                 frame = demonIdleFrames[enemySpriteNum - 1];
@@ -404,42 +428,31 @@ public class UI {
                 frame = demonDeathFrames[enemySpriteNum - 1];
                 break;
         }
-
-        // Example: draw at double tile size. Adjust as needed.
         g2.drawImage(frame, x - gp.tileSize * 2, y - gp.tileSize * 3, gp.tileSize * 5, gp.tileSize * 5, null);
     }
 
     public void setEnemyState(String newState) {
         enemyState = newState;
-        enemySpriteNum = 1; // reset frame index for the new animation
+        enemySpriteNum = 1;
     }
 
     public void triggerAnimation(String anim, int duration) {
-        // Only trigger the new animation if no animation is locked
         if (!animationLocked || enemyState.equals("idle")) {
             enemyState = anim;
             enemySpriteNum = 1;
             enemySpriteCounter = 0;
             animationLocked = true;
-            // Optionally, you can store the duration in a timer if you want a fixed duration.
-            // For simplicity, we are using frame counts here.
         }
     }
 
-    // Helper to get the number of frames for the current animation state.
-    private int getFrameCountForState(String state) {
-        switch(state) {
-            case "idle": return demonIdleFrames.length;
-            case "cleave": return demonCleaveFrames.length;
-            case "take_hit": return demonTakeHitFrames.length;
-            case "death": return demonDeathFrames.length;
-            // Add other states as needed.
-            default: return 1;
-        }
-    }
-
-    // Call this to trigger the red vignette for a given duration (in frames)
     public void triggerRedVignette(int duration) {
         redVignetteTimer = duration;
+    }
+
+    public void showBattleEscapeNotification(String msg) {
+        // For escapes, use the same persistent notification mechanism.
+        battleNotificationMessage = msg;
+        battleNotificationOn = true;
+        battleNotificationPersistent = true;
     }
 }
