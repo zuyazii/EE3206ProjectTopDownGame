@@ -59,6 +59,8 @@ public class GamePanel extends JPanel implements Runnable {
     public final int pauseState = 2;
     public final int dialogueState = 3;
     public final int battleState = 4;
+    public final int gameOverState = 5;
+
 
     // --- Transition Fields ---
     private boolean transitionActive = false;

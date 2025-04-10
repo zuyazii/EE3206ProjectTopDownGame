@@ -19,7 +19,7 @@ public class Player extends Entity {
     public Player (GamePanel gamePanel, KeyHandler keyHandler) {
         super(gamePanel);
 
-        this.maxHP = 200;
+        this.maxHP = 20;
         this.hp = maxHP;
 
         this.keyHandler = keyHandler;

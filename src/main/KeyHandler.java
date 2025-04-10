@@ -14,7 +14,6 @@ public class KeyHandler implements KeyListener {
         this.gamePanel = gamePanel;
     }
 
-
     @Override
     public void keyTyped(KeyEvent e) {}
 
@@ -202,6 +201,37 @@ public class KeyHandler implements KeyListener {
                         gamePanel.player.talkingTo.speak();
                     }
                     // If there's no next line and no option, speak() puts us in playState automatically.
+                }
+            }
+        }
+
+        // GAME OVER STATE
+        else if (gamePanel.gameState == gamePanel.gameOverState) {
+            if (code == KeyEvent.VK_W) {
+                if (gamePanel.ui.commandNum > 0) {
+                    gamePanel.ui.commandNum--;
+                    gamePanel.playSE(9);
+                }
+            }
+            if (code == KeyEvent.VK_S) {
+                if (gamePanel.ui.commandNum < 2) {
+                    gamePanel.ui.commandNum++;
+                    gamePanel.playSE(9);
+                }
+            }
+            if (code == KeyEvent.VK_ENTER) {
+                if (gamePanel.ui.commandNum == 0) {
+                    gamePanel.playSE(9);
+                    gamePanel.gameState = gamePanel.titleState;
+                    gamePanel.playMusic(0);
+                }
+                if (gamePanel.ui.commandNum == 1) {
+                    gamePanel.playSE(9);
+                    gamePanel.gameState = gamePanel.playState;
+                    gamePanel.playMusic(0);
+                }
+                if (gamePanel.ui.commandNum == 2) {
+                    System.exit(0);
                 }
             }
         }

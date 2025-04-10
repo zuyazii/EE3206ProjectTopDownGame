@@ -119,10 +119,10 @@ public class UI {
         else if (gp.gameState == gp.battleState) {
             drawBattleScreen(gp.npc[gp.currentMap][0].enemyNum);
         }
-//        // GAMEOVER STATE
-//        else if (gp.gameState == gp.gameOverState) {
-//            drawGameOverScreen();
-//        }
+        // GAMEOVER STATE
+        else if (gp.gameState == gp.gameOverState) {
+            drawGameOverScreen();
+        }
     }
 
     private void drawTitleScreen() {
@@ -438,15 +438,6 @@ public class UI {
         enemySpriteNum = 1;
     }
 
-    public void triggerAnimation(String anim, int duration) {
-        if (!animationLocked || enemyState.equals("idle")) {
-            enemyState = anim;
-            enemySpriteNum = 1;
-            enemySpriteCounter = 0;
-            animationLocked = true;
-        }
-    }
-
     public void triggerRedVignette(int duration) {
         redVignetteTimer = duration;
     }
@@ -456,5 +447,54 @@ public class UI {
         battleNotificationMessage = msg;
         battleNotificationOn = true;
         battleNotificationPersistent = true;
+    }
+
+    private void drawGameOverScreen() {
+        g2.setColor(new Color(0, 0, 0));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        // TITLE NAME
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 96f));
+        String text = "GAME OVER!";
+        int x = getXForCenteredText(text);
+        int y = gp.tileSize * 4;
+        // TITLE TEXT SHADOW
+        g2.setColor(Color.gray);
+        g2.drawString(text, x + 3, y + 3);
+        // TITLE TEXT COLOR
+        g2.setColor(Color.white);
+        g2.drawString(text, x, y);
+
+        // MAIN CHARACTER IMAGE
+//        x = gp.screenWidth / 2 - (gp.tileSize * 2) / 2;
+//        y += gp.tileSize * 1.6;
+//        g2.drawImage(gp.player.down1, x, y, gp.tileSize * 2, gp.tileSize * 2, null);
+
+        // MENU
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48f));
+
+        text = "MENU";
+        x = getXForCenteredText(text);
+        y += gp.tileSize * 3.7;
+        g2.drawString(text, x, y);
+        if (commandNum == 0) {
+            g2.drawString(">", x - gp.tileSize, y);
+        }
+
+        text = "LOAD GAME";
+        x = getXForCenteredText(text);
+        y += gp.tileSize;
+        g2.drawString(text, x, y);
+        if (commandNum == 1) {
+            g2.drawString(">", x - gp.tileSize, y);
+        }
+
+        text = "QUIT";
+        x = getXForCenteredText(text);
+        y += gp.tileSize;
+        g2.drawString(text, x, y);
+        if (commandNum == 2) {
+            g2.drawString(">", x - gp.tileSize, y);
+        }
     }
 }

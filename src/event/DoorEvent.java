@@ -26,13 +26,11 @@ public class DoorEvent extends EventObject {
 
     @Override
     public void triggerEvent(GamePanel gp) {
-        // Only trigger if not already triggered.
         if (!triggered) {
-            gp.ui.currentDialogue = "Do you want to enter?";
+            triggered = true;
+            gp.ui.optionText = promptMessage;
             gp.ui.showDialogueOptions = true;
             gp.gameState = gp.dialogueState;
-            gp.currentDoorEvent = this;
-            triggered = true;
         }
     }
 

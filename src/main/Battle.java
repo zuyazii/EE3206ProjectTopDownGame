@@ -113,11 +113,10 @@ public class Battle {
             executeAction(enemy, player, enemyAction, false);
             if (player.hp <= 0) {
                 System.out.println("Player defeated!");
-                gp.gameState = gp.playState;
+                gp.gameState = gp.gameOverState; // Now going to gameOverState.
                 return;
             }
-            // If enemy action was escape and successful,
-            // you might similarly block the next action. (Optional)
+            // If enemy action was escape and successful, (optional)
             if (enemyAction == Action.ESCAPE && pendingEscapeSuccess) {
                 return;
             }
@@ -129,8 +128,6 @@ public class Battle {
             awaitingPendingAction = true;
         }
     }
-
-
 
     // A helper to get action priority (lower value means the action goes first)
     private int getPriority(Action action) {
@@ -152,6 +149,12 @@ public class Battle {
             int damage = atkVal - defVal;
             if (damage < 0) damage = 0;
             reduceHP(defender, damage);
+
+            // Then check if battle is over now:
+            if (isBattleOver()) {
+                // Stop further action if the battle ended.
+                return;
+            }
 
             if (isPlayer) {
                 // Player attacks enemy: trigger enemy "take_hit" animation.
@@ -239,18 +242,22 @@ public class Battle {
     }
 
     private boolean isBattleOver() {
-        if(player.hp <= 0) {
+        // If player is defeated, go to GAME OVER screen
+        if (player.hp <= 0) {
             System.out.println("Player defeated!");
-            gp.gameState = gp.playState; // Switch to play or game over state.
+            // Instead of returning to playState, jump to the gameOverState:
+            gp.gameState = gp.gameOverState;
             return true;
         }
-        if(enemy.hp <= 0) {
+        // If enemy is defeated, just return to playState (or your “Victory” logic)
+        if (enemy.hp <= 0) {
             System.out.println("Enemy defeated!");
             gp.gameState = gp.playState;
             return true;
         }
         return false;
     }
+
 
     // --- Animation Methods for Battle Rounds ---
 
@@ -293,13 +300,14 @@ public class Battle {
 
         if ((pendingDefender instanceof Player && ((Player)pendingDefender).hp <= 0) ||
                 (pendingDefender instanceof Entity && ((Entity)pendingDefender).hp <= 0)) {
-            gp.gameState = gp.playState;
+            if (pendingDefender instanceof Player) {
+                gp.gameState = gp.gameOverState;  // If player is defeated, show Game Over.
+            } else {
+                gp.gameState = gp.playState;
+            }
             return;
         }
 
         gp.ui.battleCommandNum = 0;
     }
-
-
-
 }

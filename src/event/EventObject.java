@@ -8,6 +8,7 @@ public abstract class EventObject {
     protected int worldx, worldy;
     protected int width, height;
     protected Rectangle collisionBounds;
+    public String promptMessage;
 
     public EventObject(int worldx, int worldy, int width, int height) {
         this.worldx = worldx;
