@@ -23,7 +23,7 @@ public class AssetSetter {
                         1,  // next map number
                         gamePanel
                 );
-                door.promptMessage = "Leave the house?";
+                door.promptMessage = "Leave the room?";
                 gamePanel.addEventObject(door);
                 break;
         }
