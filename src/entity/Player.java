@@ -13,12 +13,14 @@ public class Player extends Entity {
     KeyHandler keyHandler;
 
     public final int screenX, screenY;
-
+    public Entity talkingTo = null;
+//    public int maxHP = 200;
 
     public Player (GamePanel gamePanel, KeyHandler keyHandler) {
         super(gamePanel);
 
-        hp = 200;
+        this.maxHP = 200;
+        this.hp = maxHP;
 
         this.keyHandler = keyHandler;
 
@@ -126,11 +128,20 @@ public class Player extends Entity {
 
     private void interactNPC(int npcIndex) {
         if (npcIndex != 999) {
+            // Means we collided with an NPC or Enemy
             if (gamePanel.keyHandler.enterPressed) {
+                // 1) Store a reference to that specific NPC/Enemy
+                talkingTo = gamePanel.npc[gamePanel.currentMap][npcIndex];
+
+                // 2) Switch to dialogue state so we can read lines or see a yes/no prompt
                 gamePanel.gameState = gamePanel.dialogueState;
-                gamePanel.npc[gamePanel.currentMap][npcIndex].speak();
+
+                // 3) Let the NPC/Enemy speak its first line or set up an option dialog
+                talkingTo.speak();
             }
         }
+
+        // Reset Enter so it does not trigger again immediately
         gamePanel.keyHandler.enterPressed = false;
     }
 

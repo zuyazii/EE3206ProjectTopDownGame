@@ -18,9 +18,11 @@ public class ENEMY_Boss01 extends Enemy {
         speed = 0;
         direction = "down";
         enemyNum = 1;
-        hp = 100;
 
-        optionDialog = "Continue Battle?";
+        maxHP = 100;
+        hp = maxHP;
+
+        this.optionDialog = "Continue Battle?";
 
         // Load idle animation images.
         down1 = setup("/enemies/boss_02/01_demon_idle/demon_idle_1");
@@ -90,16 +92,34 @@ public class ENEMY_Boss01 extends Enemy {
 
     @Override
     public void speak() {
+        // Only proceed if we're not already in option mode
         if (!gamePanel.ui.showDialogueOptions) {
+            // If we've run out of dialogue lines
             if (dialogues[dialogueIndex] == null) {
-                gamePanel.ui.showDialogueOptions = true;
+
+                // If there's a final yes/no prompt
+                if (optionDialog != null && !optionDialog.isEmpty()) {
+                    // Prepare the UI to show the yes/no window
+                    gamePanel.ui.optionText = optionDialog;
+                    gamePanel.ui.showDialogueOptions = true;
+                    // Remain in dialogueState so the prompt can be answered
+                }
+                else {
+                    // If there's no optionDialog, just go back to play
+                    gamePanel.gameState = gamePanel.playState;
+                }
+
+                // Reset so next time the conversation starts from line 0
                 dialogueIndex = 0;
-            } else {
+            }
+            else {
+                // Show the next line
                 gamePanel.ui.currentDialogue = dialogues[dialogueIndex];
                 dialogueIndex++;
             }
         }
     }
+
 
     @Override
     public void performBattleAction() {

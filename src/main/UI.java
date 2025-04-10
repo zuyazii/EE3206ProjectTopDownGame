@@ -22,6 +22,7 @@ public class UI {
     public int battleCommandNum = 0;
     public int optionNum = 0;
     public boolean showDialogueOptions = false;
+    public String optionText = "";      // The text to be shown in the yes/no prompt
 
     // Animation arrays for the demon/boss
     private BufferedImage[] demonIdleFrames;
@@ -43,6 +44,7 @@ public class UI {
     // Removed timer fields since we no longer want auto-dismiss.
     // All notifications are persistent—they only clear when Enter is pressed.
     private boolean battleNotificationPersistent = true;
+
 
     public UI(GamePanel gp) {
         this.gp = gp;
@@ -96,27 +98,31 @@ public class UI {
             drawTitleScreen();
         }
         // PLAY STATE
-        if (gp.gameState == gp.playState) {
+        else if (gp.gameState == gp.playState) {
             // (Draw play state components here as needed)
         }
         // PAUSE STATE
-        if (gp.gameState == gp.pauseState) {
+        else if (gp.gameState == gp.pauseState) {
             drawPauseScreen();
         }
         // DIALOGUE STATE
-        if (gp.gameState == gp.dialogueState) {
-            if (!showDialogueOptions) {
-                drawDialogueScreen();
-            }
-            // Use the currentDialogue string (set by the event)
+        else if (gp.gameState == gp.dialogueState) {
+            // If we are currently showing a yes/no prompt:
             if (showDialogueOptions) {
-                drawDialogueOption(currentDialogue);
+                drawDialogueOption(optionText);  // <–– Use optionText, not currentDialogue
+            }
+            else {
+                drawDialogueScreen();
             }
         }
         // BATTLE STATE
-        if (gp.gameState == gp.battleState) {
+        else if (gp.gameState == gp.battleState) {
             drawBattleScreen(gp.npc[gp.currentMap][0].enemyNum);
         }
+//        // GAMEOVER STATE
+//        else if (gp.gameState == gp.gameOverState) {
+//            drawGameOverScreen();
+//        }
     }
 
     private void drawTitleScreen() {
@@ -187,37 +193,33 @@ public class UI {
     }
 
     public void drawDialogueOption(String message) {
-        // Define window dimensions (you can tweak these values)
+        // Define window dimensions
         int width = gp.tileSize * 6;
         int height = gp.tileSize * 3;
         int x = (gp.screenWidth - width) / 2;
         int y = (gp.screenHeight - height) / 2;
 
-        // Draw the option window in the center
         drawSubWindow(x, y, width, height);
 
-        // Set font for the options (matching the dialogue style)
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32f));
 
-        // Descriptive text
+        // Main option text
         int dTextY = y + gp.tileSize;
         int dTextX = getXForCenteredText(message);
-
         g2.drawString(message, dTextX, dTextY);
 
-        // Define positions for the options text
-        int textY = y + gp.tileSize * 2; // vertically centered within the subwindow
+        // "YES" and "NO"
+        int textY = y + gp.tileSize * 2;
         int yesX = x + (int)(gp.tileSize * 1.5);
-        int noX = x + gp.tileSize * 4;
+        int noX  = x + gp.tileSize * 4;
 
-        // Draw the "YES" and "NO" options
         g2.drawString("YES", yesX, textY);
-        g2.drawString("NO", noX, textY);
+        g2.drawString("NO",  noX,  textY);
 
-        // Draw selection arrow. Here, commandNum is used as the selection index (0 for YES, 1 for NO).
+        // Draw selection arrow
         if (optionNum == 0) {
             g2.drawString(">", yesX - gp.tileSize, textY);
-        } else if (optionNum == 1) {
+        } else {
             g2.drawString(">", noX - gp.tileSize, textY);
         }
     }

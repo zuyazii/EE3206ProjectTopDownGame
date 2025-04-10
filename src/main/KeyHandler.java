@@ -1,5 +1,7 @@
 package main;
 
+import entity.Enemy;
+
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -75,15 +77,27 @@ public class KeyHandler implements KeyListener {
             // In KeyHandler.java, within battle state block:
             if (code == KeyEvent.VK_ENTER) {
                 if (gamePanel.ui.isBattleNotificationActive()) {
+                    System.out.println(">> Dismissing battle notification!");
                     gamePanel.ui.dismissBattleNotification();
+
                     if (gamePanel.battle != null &&
                             (gamePanel.battle.awaitingPendingAction || gamePanel.battle.pendingEscapeSuccess)) {
+                        System.out.println(">> Resuming round...");
                         gamePanel.battle.resumeRound();
                     }
-                } else if (gamePanel.battle != null) {
+                    else {
+                        System.out.println(">> No pending action or no battle object!");
+                    }
+                }
+                else if (gamePanel.battle != null) {
+                    System.out.println(">> Enter pressed => executeRound()");
                     gamePanel.battle.executeRound();
                 }
+                else {
+                    System.out.println(">> (battle is null, so no action)");
+                }
             }
+
         }
 
         // PLAY STATE
@@ -119,42 +133,75 @@ public class KeyHandler implements KeyListener {
 
         // DIALOGUE STATE
         else if (gamePanel.gameState == gamePanel.dialogueState) {
-            if (gamePanel.ui.showDialogueOptions) {
-                // Use A/Left and D/Right to change selection.
+
+            // If the door’s yes/no is up, that logic remains:
+            if (gamePanel.ui.showDialogueOptions && gamePanel.currentDoorEvent != null) {
                 if (code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
                     gamePanel.ui.optionNum = 0;  // YES
                     gamePanel.playSE(9);
                 }
-                if (code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
+                else if (code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
                     gamePanel.ui.optionNum = 1;  // NO
                     gamePanel.playSE(9);
                 }
-                // Confirm selection.
-                if (code == KeyEvent.VK_ENTER) {
-                    if (gamePanel.currentDoorEvent != null) {
-                        if (gamePanel.ui.optionNum == 0) {  // YES selected.
-                            gamePanel.currentDoorEvent.triggerDoorTransition(gamePanel);
-                        } else {  // NO selected.
-                            System.out.println("Player declined to enter the door.");
-                            // Do not mark the door as responded (or triggered remains true) so that it
-                            // won’t trigger repeatedly while still colliding.
-                        }
-                        // In either case, clear the dialogue.
-                        gamePanel.currentDoorEvent = null;
-                        gamePanel.ui.showDialogueOptions = false;
-                        gamePanel.ui.currentDialogue = "";
-                        gamePanel.gameState = gamePanel.playState;
-                    } else {
-                        // Process other dialogue options if needed.
-                        gamePanel.ui.showDialogueOptions = false;
-                        gamePanel.ui.currentDialogue = "";
+                else if (code == KeyEvent.VK_ENTER) {
+                    if (gamePanel.ui.optionNum == 0) {
+                        // YES selected for the door
+                        gamePanel.currentDoorEvent.triggerDoorTransition(gamePanel);
+                    }
+                    else {
+                        // NO selected for the door
+                        System.out.println("Player declined to enter the door.");
+                    }
+                    // Clear out the door event
+                    gamePanel.currentDoorEvent = null;
+                    gamePanel.ui.showDialogueOptions = false;
+                    gamePanel.ui.currentDialogue = "";
+                    gamePanel.gameState = gamePanel.playState;
+                }
+            }
+
+            // Otherwise, if it's not a door but an NPC/enemy’s prompt:
+            else if (gamePanel.ui.showDialogueOptions) {
+                if (code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
+                    gamePanel.ui.optionNum = 0;  // YES
+                    gamePanel.playSE(9);
+                }
+                else if (code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
+                    gamePanel.ui.optionNum = 1;  // NO
+                    gamePanel.playSE(9);
+                }
+                else if (code == KeyEvent.VK_ENTER) {
+                    // Suppose optionNum == 0 means "YES" => Start battle or do something:
+                    if (gamePanel.ui.optionNum == 0) {
+                        // Example: go to battleState
+                        // or call a method to set up the battle
+
+                        gamePanel.battle = new Battle(gamePanel, gamePanel.player, (Enemy) gamePanel.player.talkingTo);
+                        gamePanel.gameState = gamePanel.battleState;
+                        // The next lines are up to your logic:
+                        // e.g., gamePanel.battle = new Battle(gamePanel.player, (Enemy)someEnemyObject)
+                    }
+                    // If NO => go back to normal play
+                    else {
                         gamePanel.gameState = gamePanel.playState;
                     }
-                }
-            } else {
-                if (code == KeyEvent.VK_ENTER) {
-                    gamePanel.gameState = gamePanel.playState;
+                    // Cleanup
                     gamePanel.ui.showDialogueOptions = false;
+                    gamePanel.ui.currentDialogue = "";
+                }
+            }
+
+            // If no options are showing, the user is reading lines of dialogue:
+            else {
+                if (code == KeyEvent.VK_ENTER) {
+                    // Let the NPC or Enemy speak again => this triggers the next line
+                    // or the final optionDialog if we just finished the last line
+                    // You might need to store which NPC/Enemy is currently talking.
+                    if (gamePanel.player.talkingTo != null) {
+                        gamePanel.player.talkingTo.speak();
+                    }
+                    // If there's no next line and no option, speak() puts us in playState automatically.
                 }
             }
         }

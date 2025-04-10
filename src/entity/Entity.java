@@ -11,7 +11,7 @@ import java.util.Random;
 
 // This stores variables that will be used in player, monster and NPC classes
 public class Entity {
-//    public Point collisionBounds;
+
     GamePanel gamePanel;
 
     public int worldx, worldy;
@@ -32,6 +32,7 @@ public class Entity {
     public int enemyNum;
 
     public int hp;
+    public int maxHP;
     public Random attackVal = new Random();
     public Random defenseVal = new Random();
     public boolean isDefending = false;
@@ -177,5 +178,9 @@ public class Entity {
                 direction = "left";
                 break;
         }
+    }
+    // Optionally, a method to reset HP:
+    public void resetHP() {
+        hp = maxHP;
     }
 }

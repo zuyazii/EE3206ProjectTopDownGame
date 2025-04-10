@@ -32,6 +32,10 @@ public class Battle {
         this.gp = gp;
         this.player = player;
         this.enemy = enemy;
+
+        // Reset HP to the stored maximum values
+        this.player.resetHP();
+        this.enemy.resetHP();
     }
 
     // Map UI battleCommandNum (0: ATTACK, 1: DEFENSE, 2: ESCAPE, 3: INVENTORY)
