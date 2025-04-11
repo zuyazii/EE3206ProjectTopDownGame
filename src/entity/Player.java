@@ -1,7 +1,11 @@
 package entity;
 
+import item.Inventory;
 import main.GamePanel;
 import main.KeyHandler;
+import object.OBJ_Potion_Red;
+import object.OBJ_Shield_Wood;
+import object.OBJ_Sword_Normal;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -14,12 +18,17 @@ public class Player extends Entity {
 
     public final int screenX, screenY;
     public Entity talkingTo = null;
-//    public int maxHP = 200;
+    public Inventory inventory;
+
+    // Equiped Items
+    public item.Item currentWeapon;
+    public item.Item currentShield;
+
 
     public Player (GamePanel gamePanel, KeyHandler keyHandler) {
         super(gamePanel);
 
-        this.maxHP = 20;
+        this.maxHP = 100;
         this.hp = maxHP;
 
         this.keyHandler = keyHandler;
@@ -31,9 +40,12 @@ public class Player extends Entity {
         solidAreaDefaultX = collisionBounds.x;
         solidAreaDefaultY = collisionBounds.y;
 
-        setDefaultValues();
+        // Initialize the inventory:
+        inventory = new Inventory();
 
+        setDefaultValues();
         getPlayerImage();
+        setItems();
     }
 
     public void setDefaultValues () {
@@ -42,6 +54,47 @@ public class Player extends Entity {
         speed = 4;
         direction = "up";
     }
+
+    public void setItems() {
+        // Starting equipment:
+        currentWeapon = new OBJ_Sword_Normal(gamePanel);
+        currentShield = new OBJ_Shield_Wood(gamePanel);
+        inventory.clear();
+        inventory.addItem(currentWeapon);
+        inventory.addItem(currentShield);
+
+        // Optionally add a consumable (e.g., one Red Potion):
+        OBJ_Potion_Red potion = new OBJ_Potion_Red(gamePanel);
+        inventory.addItem(potion);
+    }
+
+    public void useConsumableItem(int index) {
+        if (index < inventory.size()) {
+            item.Item selected = inventory.get(index);
+            // Check that the item is indeed a consumable.
+            if (selected.type == item.ItemType.CONSUMABLE) {
+                // Increase player's HP by the healing value.
+                hp += selected.hpBoost;
+                if (hp > maxHP) {
+                    hp = maxHP;
+                }
+                // Deduct one use of the potion.
+                selected.quantity--;
+                // Remove the item from inventory if quantity is zero.
+                if (selected.quantity <= 0) {
+                    inventory.remove(index);
+                }
+                // Show a notification on the UI (choose the notification method based on game state).
+                if (gamePanel.gameState == gamePanel.battleState) {
+                    gamePanel.ui.showBattleNotification("Used " + selected.name + " and healed " + selected.hpBoost + " HP!");
+                } else {
+                    gamePanel.ui.showItemNotification("Used " + selected.name + " and healed " + selected.hpBoost + " HP!");
+                }
+            }
+        }
+    }
+
+
 
     public void getPlayerImage() {
         try {
@@ -199,6 +252,7 @@ public class Player extends Entity {
                 collisionBounds.width, collisionBounds.height);
     }
 
+    // For Debugging purposes
     public void drawCollisionBounds(Graphics2D g2) {
         // Calculate the player's collision area on screen:
         int drawX = screenX + collisionBounds.x;

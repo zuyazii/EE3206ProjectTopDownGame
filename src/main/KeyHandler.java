@@ -52,6 +52,57 @@ public class KeyHandler implements KeyListener {
 
         // BATTLE STATE
         else if (gamePanel.gameState == gamePanel.battleState) {
+
+            // Check if battle inventory mode is active.
+            if (gamePanel.ui.battleInventoryActive) {
+                // Use W and S to change the selection.
+                if (code == KeyEvent.VK_W) {
+                    gamePanel.ui.battleInvSelection--;
+                    gamePanel.playSE(9);
+                }
+                if (code == KeyEvent.VK_S) {
+                    gamePanel.ui.battleInvSelection++;
+                    gamePanel.playSE(9);
+                }
+                // Clamp the selection index using the number of consumable items.
+                int numConsumables = 0;
+                for (item.Item itm : gamePanel.player.inventory.items) {
+                    if (itm.type == item.ItemType.CONSUMABLE) {
+                        numConsumables++;
+                    }
+                }
+                if (gamePanel.ui.battleInvSelection < 0) {
+                    gamePanel.ui.battleInvSelection = 0;
+                }
+                if (gamePanel.ui.battleInvSelection >= numConsumables) {
+                    gamePanel.ui.battleInvSelection = numConsumables - 1;
+                }
+                // Use the selected item when ENTER is pressed.
+                if (code == KeyEvent.VK_ENTER) {
+                    // Build a list of indices for consumable items.
+                    java.util.List<Integer> consIndices = new java.util.ArrayList<>();
+                    for (int i = 0; i < gamePanel.player.inventory.size(); i++) {
+                        if (gamePanel.player.inventory.get(i).type == item.ItemType.CONSUMABLE) {
+                            consIndices.add(i);
+                        }
+                    }
+                    if (gamePanel.ui.battleInvSelection < consIndices.size()) {
+                        int selectedIndex = consIndices.get(gamePanel.ui.battleInvSelection);
+                        gamePanel.player.useConsumableItem(selectedIndex);
+                    }
+                    // Close the battle inventory mode.
+                    gamePanel.ui.battleInventoryActive = false;
+                    return; // Skip further processing.
+                }
+                // Cancel the battle inventory mode if Q is pressed.
+                if (code == KeyEvent.VK_Q) {
+                    gamePanel.ui.battleInventoryActive = false;
+                    return;
+                }
+                // Skip further processing while in battle inventory mode.
+                return;
+            }
+
             switch (gamePanel.ui.battleCommandNum) {
                 case 0:
                     if (code == KeyEvent.VK_D) { gamePanel.ui.battleCommandNum = 1; gamePanel.playSE(9); }
@@ -101,6 +152,76 @@ public class KeyHandler implements KeyListener {
 
         // PLAY STATE
         else if (gamePanel.gameState == gamePanel.playState) {
+            // First, check for the toggle inventory key (E) so that it has priority.
+            if (code == KeyEvent.VK_E) {
+                gamePanel.ui.inventoryActive = !gamePanel.ui.inventoryActive;
+                System.out.println("Inventory toggled: " + gamePanel.ui.inventoryActive);
+                return; // Skip further processing when toggling the inventory.
+            }
+
+            // If the inventory is active, handle inventory navigation exclusively.
+            if (gamePanel.ui.inventoryActive) {
+                // Navigation: Use W/A/S/D to update the cursor position.
+                if (code == KeyEvent.VK_W) {
+                    gamePanel.ui.playerSlotRow--;
+                    gamePanel.playSE(9);
+                }
+                if (code == KeyEvent.VK_S) {
+                    gamePanel.ui.playerSlotRow++;
+                    gamePanel.playSE(9);
+                }
+                if (code == KeyEvent.VK_A) {
+                    gamePanel.ui.playerSlotCol--;
+                    gamePanel.playSE(9);
+                }
+                if (code == KeyEvent.VK_D) {
+                    gamePanel.ui.playerSlotCol++;
+                    gamePanel.playSE(9);
+                }
+
+                // Clamp the values (assume grid of 5 columns and 3 rows).
+                gamePanel.ui.playerSlotRow = clampValue(gamePanel.ui.playerSlotRow, 0, 2);
+                gamePanel.ui.playerSlotCol = clampValue(gamePanel.ui.playerSlotCol, 0, 4);
+
+                // Use or equip the selected item when Enter is pressed.
+                if (code == KeyEvent.VK_ENTER) {
+
+                    if (gamePanel.ui.itemNotificationActive) {
+                        if (code == KeyEvent.VK_ENTER) {
+                            gamePanel.ui.itemNotificationActive = false;  // Dismiss the notification.
+                            gamePanel.playSE(9); // Optionally, play a sound effect.
+                        }
+                        return;  // Do not process any other input while the notification is active.
+                    }
+
+                    int selectedIndex = gamePanel.ui.playerSlotCol + (gamePanel.ui.playerSlotRow * 5);
+                    if (selectedIndex < gamePanel.player.inventory.size()) {
+                        item.Item itm = gamePanel.player.inventory.get(selectedIndex);
+                        if (itm.type == item.ItemType.CONSUMABLE) {
+                            // Use the consumable item and then show a notification.
+                            gamePanel.player.useConsumableItem(selectedIndex);
+                            gamePanel.ui.showItemNotification("Used " + itm.name + " and restored " + itm.hpBoost + " HP!");
+                        } else if (itm.type == item.ItemType.EQUIPMENT) {
+                            // Equip the item. (Here you might also change the player's current equipment.)
+                            System.out.println("Equipped " + itm.name);
+                            // For example, if you decide which equipment slot the item goes to:
+                            // (This is just an example; replace it with your actual equip logic.)
+                            if (itm.name.contains("Sword")) {
+                                gamePanel.player.currentWeapon = itm;
+                            } else if (itm.name.contains("Shield")) {
+                                gamePanel.player.currentShield = itm;
+                            }
+                            gamePanel.ui.showItemNotification("Equipped " + itm.name + "!");
+                        }
+                        gamePanel.playSE(9);
+                    }
+                }
+
+                // Return so that no other playState input is processed while in inventory mode.
+                return;
+            }
+
+            // If inventory is not active, process normal movement keys:
             if (code == KeyEvent.VK_W) {
                 upPressed = true;
             }
@@ -254,4 +375,15 @@ public class KeyHandler implements KeyListener {
             rightPressed = false;
         }
     }
+
+    private int clampValue(int value, int min, int max) {
+        if (value < min) {
+            return min;
+        }
+        if (value > max) {
+            return max;
+        }
+        return value;
+    }
+
 }

@@ -19,7 +19,7 @@ public class ENEMY_Boss01 extends Enemy {
         direction = "down";
         enemyNum = 1;
 
-        maxHP = 100;
+        maxHP = 200;
         hp = maxHP;
 
         this.optionDialog = "Continue Battle?";

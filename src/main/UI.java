@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
+import entity.Player;
 import object.OBJ_Key;
 
 import javax.imageio.ImageIO;
@@ -45,10 +46,20 @@ public class UI {
     // All notifications are persistent—they only clear when Enter is pressed.
     private boolean battleNotificationPersistent = true;
 
+    // Inventory Fields
+    public boolean inventoryActive = false;
+    public int playerSlotCol = 0;
+    public int playerSlotRow = 0;
+    public boolean itemNotificationActive = false;
+    private String itemNotificationMessage = "";
+
+    // Battle Inventory Fields (for consumables only)
+    public boolean battleInventoryActive = false;
+    public int battleInvSelection = 0;  // Index of the currently selected consumable (in the filtered list)
+    public int battleInvOffset = 0;     // For scrolling: the index in the filtered list of the first visible item
 
     public UI(GamePanel gp) {
         this.gp = gp;
-
         try {
             InputStream is = getClass().getResourceAsStream("/font/x12y16pxMaruMonica.ttf");
             maruMonica = Font.createFont(Font.TRUETYPE_FONT, is);
@@ -59,13 +70,7 @@ public class UI {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         loadEnemySprites();
-    }
-
-    public void showMessage(String msg) {
-        message = msg;
-        messageOn = true;
     }
 
     // Show a battle notification that remains on screen until dismissed.
@@ -75,8 +80,6 @@ public class UI {
         // All battle notifications are now persistent (auto-dismiss is removed).
         battleNotificationPersistent = true;
     }
-
-    // No updateBattleNotification() method is needed since there is no timer.
 
     // These methods let KeyHandler check/dismiss the notification.
     public boolean isBattleNotificationActive() {
@@ -89,9 +92,16 @@ public class UI {
     }
 
     public void draw(Graphics2D g2) {
+
         this.g2 = g2;
         g2.setFont(maruMonica);
         g2.setColor(Color.white);
+
+        // Item Notification
+        if (itemNotificationActive) {
+            drawItemNotification();
+            return;
+        }
 
         // TITLE STATE
         if (gp.gameState == gp.titleState) {
@@ -99,7 +109,10 @@ public class UI {
         }
         // PLAY STATE
         else if (gp.gameState == gp.playState) {
-            // (Draw play state components here as needed)
+            if (inventoryActive) {
+                drawInventory();
+                return; // Inventory menu takes full screen overlay.
+            }
         }
         // PAUSE STATE
         else if (gp.gameState == gp.pauseState) {
@@ -117,8 +130,16 @@ public class UI {
         }
         // BATTLE STATE
         else if (gp.gameState == gp.battleState) {
+            // 1) Always draw the main battle screen (the demon, HP, commands, etc.)
             drawBattleScreen(gp.npc[gp.currentMap][0].enemyNum);
+
+            // 2) If battleInventoryActive is true, overlay the smaller inventory subwindow
+            if (battleInventoryActive) {
+                drawBattleInventory();
+            }
+            // No 'return;' here — so that the demon and background remain drawn behind the subwindow.
         }
+
         // GAMEOVER STATE
         else if (gp.gameState == gp.gameOverState) {
             drawGameOverScreen();
@@ -181,7 +202,7 @@ public class UI {
         int width = gp.screenWidth - (gp.tileSize * 4);
         int height = gp.tileSize * 5;
 
-        drawSubWindow(x, y, width, height);
+        drawSubWindow(x, y, width, height, 210);
 
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32f));
         x += gp.tileSize;
@@ -199,7 +220,7 @@ public class UI {
         int x = (gp.screenWidth - width) / 2;
         int y = (gp.screenHeight - height) / 2;
 
-        drawSubWindow(x, y, width, height);
+        drawSubWindow(x, y, width, height, 210);
 
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32f));
 
@@ -248,7 +269,7 @@ public class UI {
         int height = (int)(gp.tileSize * 4.5);
 
         // Draw the subwindow background.
-        drawSubWindow(subX, subY, width, height);
+        drawSubWindow(subX, subY, width, height, 255);
 
         // Check if a battle notification is active.
         if (battleNotificationOn) {
@@ -317,8 +338,8 @@ public class UI {
         }
     }
 
-    public void drawSubWindow(int x, int y, int width, int height) {
-        Color c = new Color(0, 0, 0, 210);
+    public void drawSubWindow(int x, int y, int width, int height, int a) {
+        Color c = new Color(0, 0, 0, a);
         g2.setColor(c);
         g2.fillRoundRect(x, y, width, height, 35, 35);
 
@@ -496,5 +517,168 @@ public class UI {
         if (commandNum == 2) {
             g2.drawString(">", x - gp.tileSize, y);
         }
+    }
+
+    public void drawInventory() {
+        // Define the subwindow for the inventory screen.
+        int frameX = gp.tileSize * 9;
+        int frameY = gp.tileSize;
+        int frameWidth = gp.tileSize * 6;
+        int frameHeight = gp.tileSize * 5;
+        // Use existing inventory fields:
+        int slotCol = playerSlotCol;
+        int slotRow = playerSlotRow;
+
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight, 210);
+
+        final int slotXstart = frameX + 20;
+        final int slotYstart = frameY + 20;
+        int slotX = slotXstart;
+        int slotY = slotYstart;
+        int slotSize = gp.tileSize + 3;
+
+        // Draw each item in the player's inventory.
+        for (int i = 0; i < gp.player.inventory.size(); i++) {
+            item.Item itm = gp.player.inventory.get(i);
+            // Highlight if this item is currently equipped:
+            if(itm == gp.player.currentWeapon || itm == gp.player.currentShield) {
+                g2.setColor(new Color(240, 190, 90));
+                g2.fillRoundRect(slotX, slotY, gp.tileSize, gp.tileSize, 10, 10);
+            }
+            // Draw the item icon.
+            g2.drawImage(itm.icon, slotX, slotY, null);
+            // If the item is consumable and quantity > 1, display the quantity.
+            if(itm.type == item.ItemType.CONSUMABLE && itm.quantity > 1) {
+                g2.setFont(g2.getFont().deriveFont(32f));
+                String s = "" + itm.quantity;
+                int amountX = getXforAlignToRight(s, slotX + 44);
+                int amountY = slotY + gp.tileSize;
+                g2.setColor(new Color(60,60,60));
+                g2.drawString(s, amountX, amountY);
+                g2.setColor(Color.white);
+                g2.drawString(s, amountX - 3, amountY - 3);
+            }
+
+            slotX += slotSize;
+            if(i == 4 || i == 9 || i == 14) {
+                slotX = slotXstart;
+                slotY += slotSize;
+            }
+        }
+
+        // Draw the selection cursor:
+        int cursorX = slotXstart + (slotSize * slotCol);
+        int cursorY = slotYstart + (slotSize * slotRow);
+        g2.setColor(Color.white);
+        g2.setStroke(new BasicStroke(3));
+        g2.drawRoundRect(cursorX, cursorY, gp.tileSize, gp.tileSize, 10, 10);
+
+        // Draw a description window for the selected item.
+        int dFrameX = frameX;
+        int dFrameY = frameY + frameHeight;
+        int dFrameWidth = frameWidth;
+        int dFrameHeight = gp.tileSize * 3;
+        drawSubWindow(dFrameX, dFrameY, dFrameWidth, dFrameHeight, 210);
+        int textX = dFrameX + 20;
+        int textY = dFrameY + gp.tileSize;
+        g2.setFont(g2.getFont().deriveFont(28f));
+
+        int selectedIndex = playerSlotCol + (playerSlotRow * 5);
+        if(selectedIndex < gp.player.inventory.size()){
+            String desc = gp.player.inventory.get(selectedIndex).description;
+            for(String line : desc.split("\n")){
+                g2.drawString(line, textX, textY);
+                textY += 32;
+            }
+        }
+    }
+
+    public void drawItemNotification() {
+        int width = gp.tileSize * 8;
+        int height = gp.tileSize * 2;
+        int x = (gp.screenWidth - width) / 2;
+        int y = (gp.screenHeight - height) / 2;
+        drawSubWindow(x, y, width, height, 210);
+        g2.setFont(g2.getFont().deriveFont(28f));
+        int textX = getXForCenteredText(itemNotificationMessage);
+        int textY = y + gp.tileSize;
+        g2.drawString(itemNotificationMessage, textX, textY);
+        // Optionally, draw a prompt such as:
+        g2.setFont(g2.getFont().deriveFont(18f));
+        String prompt = "- Press Enter to continue -";
+        int promptX = getXForCenteredText(prompt);
+        g2.drawString(prompt, promptX, textY + gp.tileSize / 2);
+    }
+
+    public void showItemNotification(String msg) {
+        itemNotificationMessage = msg;
+        itemNotificationActive = true;
+    }
+
+    public int getXforAlignToRight(String text, int tailX) {
+        int textWidth = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        return tailX - textWidth;
+    }
+
+    public void drawBattleInventory() {
+        // Subwindow = the same area as the normal battle command box:
+        int subX = (int)(gp.tileSize * 2.5);
+        int subY = gp.tileSize * 7;
+        int width = gp.screenWidth - (gp.tileSize * 5);
+        int height = (int)(gp.tileSize * 4.5);
+
+        drawSubWindow(subX, subY, width, height, 255);
+
+        // Then inside this rectangle, lay out your consumable list.
+        // For example, an offset from subX + 20, subY + 40, etc.
+
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 30f));
+        g2.setColor(Color.white);
+
+        // Filter out just the consumable items, like before:
+        java.util.List<item.Item> consumables = new java.util.ArrayList<>();
+        java.util.List<Integer> consIndices = new java.util.ArrayList<>();
+        for (int i = 0; i < gp.player.inventory.size(); i++) {
+            item.Item itm = gp.player.inventory.get(i);
+            if (itm.type == item.ItemType.CONSUMABLE) {
+                consumables.add(itm);
+                consIndices.add(i);
+            }
+        }
+
+        int visibleRows = 5;
+        int listStartX = subX + gp.tileSize;
+        int listStartY = subY + gp.tileSize; // maybe start 40 px down to have space for a title
+        int lineHeight = 28;
+
+        if (consumables.isEmpty()) {
+            String msg = "No consumables!";
+            int msgX = getXForCenteredText(msg);
+            int msgY = subY + height/2;
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 30f));
+            g2.drawString(msg, msgX, msgY);
+        }
+        else {
+            // Keep the code for clamping battleInvSelection and battleInvOffset
+            // Then draw the items line by line
+            for (int i = battleInvOffset; i < consumables.size() && i < battleInvOffset + visibleRows; i++) {
+                item.Item itm = consumables.get(i);
+                String line = itm.name + " x" + itm.quantity;
+                int textX = listStartX;
+                int textY = listStartY + (i - battleInvOffset) * lineHeight;
+
+                if (i == battleInvSelection) {
+                    g2.drawString(">", textX - 20, textY);
+                }
+                g2.drawString(line, textX, textY);
+            }
+        }
+
+        // Draw a small prompt at the bottom of the subwindow
+        String prompt = "Enter: Use   Q: Back";
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 18f));
+        int promptX = getXForCenteredText(prompt);
+        int promptY = subY + height - 20;
+        g2.drawString(prompt, promptX, promptY);
     }
 }

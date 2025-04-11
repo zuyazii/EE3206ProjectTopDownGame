@@ -35,6 +35,11 @@ public class AssetSetter {
                 gamePanel.npc[0][0] = new ENEMY_Boss01(gamePanel);
                 gamePanel.npc[0][0].worldx = gamePanel.tileSize * 24;
                 gamePanel.npc[0][0].worldy = gamePanel.tileSize * 22;
+
+//                gamePanel.npc[1][0] = new NPC_OldMan(gamePanel);
+//                gamePanel.npc[1][0].worldx = gamePanel.tileSize * 24;
+//                gamePanel.npc[1][0].worldy = gamePanel.tileSize * 22;
+
                 break;
             case 1:
                 gamePanel.npc[1][0] = new NPC_OldMan(gamePanel);

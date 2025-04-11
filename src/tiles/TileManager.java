@@ -178,7 +178,7 @@ public class TileManager {
 
             tiles[35] = new Tile();
             tiles[35].image = ImageIO.read(getClass().getResourceAsStream("/tiles/z.png"));
-//            tiles[35].collision = true;
+            tiles[35].collision = true;
 
         } catch (IOException e) {
             e.printStackTrace();

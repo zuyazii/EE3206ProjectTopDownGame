@@ -34,7 +34,7 @@ public class Battle {
         this.enemy = enemy;
 
         // Reset HP to the stored maximum values
-        this.player.resetHP();
+//        this.player.resetHP();
         this.enemy.resetHP();
     }
 
@@ -193,25 +193,55 @@ public class Battle {
         }
 
         else if (action == Action.INVENTORY) {
-            System.out.println((isPlayer ? "Player" : "Enemy") + " uses inventory (not implemented).");
-            gp.ui.showBattleNotification((isPlayer ? "Player" : "Enemy") + " used inventory (not implemented).");
+            if (isPlayer) {
+                // Open the battle inventory mode.
+                gp.ui.battleInventoryActive = true;
+                gp.ui.battleInvSelection = 0;
+                gp.ui.battleInvOffset = 0;
+                System.out.println("Player opens battle inventory.");
+                // Optionally show a notification message on the battle UI:
+//                gp.ui.showBattleNotification("Select a consumable to use");
+            } else {
+                // For an enemy, you might not implement inventory use.
+                gp.ui.showBattleNotification("Enemy inventory use not allowed!");
+            }
         }
     }
 
     private int getAttackValue(Object actor) {
-        if(actor instanceof Player) {
-            return ((Player)actor).attackVal.nextInt(11) + 10;
-        } else if(actor instanceof Entity) {
-            return ((Entity)actor).attackVal.nextInt(11) + 10;
+        if (actor instanceof Player) {
+            Player p = (Player) actor;
+            // Generate a base attack value.
+            int baseAttack = p.attackVal.nextInt(11) + 10;
+            // Sum the attack bonus from all equipment items.
+            int equipmentBonus = 0;
+            for (item.Item i : p.inventory.items) {
+                if(i.type == item.ItemType.EQUIPMENT) {
+                    equipmentBonus += i.attackBoost;
+                }
+            }
+            return baseAttack + equipmentBonus;
+        } else if (actor instanceof Entity) {
+            return ((Entity) actor).attackVal.nextInt(11) + 10;
         }
         return 0;
     }
 
     private int getDefenseValue(Object actor) {
-        if(actor instanceof Player) {
-            return ((Player)actor).defenseVal.nextInt(11) + 5;
-        } else if(actor instanceof Entity) {
-            return ((Entity)actor).defenseVal.nextInt(11) + 5;
+        if (actor instanceof Player) {
+            Player p = (Player) actor;
+            // Generate a base defense value.
+            int baseDefense = p.defenseVal.nextInt(11) + 5;
+            // Sum the defense bonus from all equipment items.
+            int equipmentBonus = 0;
+            for (item.Item i : p.inventory.items) {
+                if(i.type == item.ItemType.EQUIPMENT) {
+                    equipmentBonus += i.defenseBoost;
+                }
+            }
+            return baseDefense + equipmentBonus;
+        } else if (actor instanceof Entity) {
+            return ((Entity) actor).defenseVal.nextInt(11) + 5;
         }
         return 0;
     }
@@ -258,32 +288,6 @@ public class Battle {
         return false;
     }
 
-
-    // --- Animation Methods for Battle Rounds ---
-
-    // Call this each frame from UI.drawBattleScreen().
-    public void updateRoundAnimation() {
-        if (roundAnimationTimer > 0) {
-            roundAnimationTimer--;
-            if (roundAnimationTimer == 0) {
-                // When animation time is up, revert enemy state to idle.
-                gp.ui.setEnemyState("idle");
-            }
-        }
-    }
-
-    // This method is here if you want to draw extra round effects.
-    // In this example, the UI already draws the enemy animation based on its state.
-    public void drawRoundAnimation(Graphics2D g2) {
-        // You can add additional visual effects here if needed.
-    }
-
-    // Call this to trigger an enemy animation for a set duration.
-    public void triggerAnimation(String anim, int duration) {
-        roundAnimationTimer = duration;
-        gp.ui.setEnemyState(anim);
-    }
-
     public void resumeRound() {
         // If a successful escape occurred, transition to playState.
         if (pendingEscapeSuccess) {
@@ -310,4 +314,30 @@ public class Battle {
 
         gp.ui.battleCommandNum = 0;
     }
+
+    // --- Animation Methods for Battle Rounds ---
+
+    // Call this each frame from UI.drawBattleScreen().
+    public void updateRoundAnimation() {
+        if (roundAnimationTimer > 0) {
+            roundAnimationTimer--;
+            if (roundAnimationTimer == 0) {
+                // When animation time is up, revert enemy state to idle.
+                gp.ui.setEnemyState("idle");
+            }
+        }
+    }
+
+    // This method is here if you want to draw extra round effects.
+    // In this example, the UI already draws the enemy animation based on its state.
+    public void drawRoundAnimation(Graphics2D g2) {
+        // You can add additional visual effects here if needed.
+    }
+
+    // Call this to trigger an enemy animation for a set duration.
+    public void triggerAnimation(String anim, int duration) {
+        roundAnimationTimer = duration;
+        gp.ui.setEnemyState(anim);
+    }
+
 }
