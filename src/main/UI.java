@@ -601,7 +601,7 @@ public class UI {
         drawSubWindow(x, y, width, height, 210);
         g2.setFont(g2.getFont().deriveFont(28f));
         int textX = getXForCenteredText(itemNotificationMessage);
-        int textY = y + gp.tileSize;
+        int textY = y + (int)(gp.tileSize * 0.9);
         g2.drawString(itemNotificationMessage, textX, textY);
         // Optionally, draw a prompt such as:
         g2.setFont(g2.getFont().deriveFont(18f));

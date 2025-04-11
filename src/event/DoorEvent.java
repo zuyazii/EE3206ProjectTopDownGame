@@ -12,16 +12,20 @@ public class DoorEvent extends EventObject {
     // New flag: becomes true when the event’s dialogue has been displayed.
     private boolean triggered = false;
 
-    public DoorEvent(int worldx, int worldy, int width, int height, int nextMap, GamePanel gamePanel) {
+    public DoorEvent(int worldx, int worldy, int width, int height, int nextMap, GamePanel gamePanel, boolean isBlackhole) {
         super(worldx, worldy, width, height);
         this.nextMap = nextMap;
-        try {
-            doorImage = ImageIO.read(getClass().getResourceAsStream("/object/door.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (!isBlackhole) {
+            try {
+                doorImage = ImageIO.read(getClass().getResourceAsStream("/object/door.png"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            doorImage = null;
         }
         // Adjust collision bounds: start half a tile above the door and extend 1.5 tiles tall.
-        collisionBounds = new Rectangle(0, -gamePanel.tileSize / 2, gamePanel.tileSize, (int)(gamePanel.tileSize * 1.5));
+        collisionBounds = new Rectangle(-width/2, -height / 2, width, height + (int)(gamePanel.tileSize));
     }
 
     @Override

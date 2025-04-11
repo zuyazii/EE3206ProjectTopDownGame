@@ -1,8 +1,8 @@
 package main;
 
+import entity.NPC_Cat;
 import event.DoorEvent;
 import entity.ENEMY_Boss01;
-import entity.NPC_OldMan;
 
 public class AssetSetter {
     GamePanel gamePanel;
@@ -15,16 +15,43 @@ public class AssetSetter {
         switch (currentMap) {
             case 0:
                 // Create a DoorEvent with door dimensions: width = tileSize, height = tileSize*2.
-                DoorEvent door = new DoorEvent(
+                DoorEvent door1 = new DoorEvent(
                         25 * gamePanel.tileSize,
                         30 * gamePanel.tileSize,
                         gamePanel.tileSize,
                         gamePanel.tileSize,
                         1,  // next map number
-                        gamePanel
+                        gamePanel,
+                        false
                 );
-                door.promptMessage = "Leave the room?";
-                gamePanel.addEventObject(door);
+                door1.promptMessage = "Leave the room?";
+                gamePanel.addEventObject(door1);
+                break;
+            case 1:
+                // Create a DoorEvent with door dimensions: width = tileSize, height = tileSize*2.
+                DoorEvent door2 = new DoorEvent(
+                        13 * gamePanel.tileSize,
+                        15 * gamePanel.tileSize,
+                        gamePanel.tileSize,
+                        gamePanel.tileSize,
+                        0,  // next map number
+                        gamePanel,
+                        false
+                );
+                door2.promptMessage = "Enter the room?";
+                gamePanel.addEventObject(door2);
+
+                DoorEvent blackholeDoor1 = new DoorEvent(
+                        41 * gamePanel.tileSize,
+                        18 * gamePanel.tileSize,
+                        gamePanel.tileSize,
+                        gamePanel.tileSize * 4,
+                        2,  // next map number
+                        gamePanel,
+                        true
+                );
+                blackholeDoor1.promptMessage = "Enter the forest..?";
+                gamePanel.addEventObject(blackholeDoor1);
                 break;
         }
     }
@@ -32,19 +59,24 @@ public class AssetSetter {
     public void setNPC(int currentMap) {
         switch (currentMap) {
             case 0:
-                gamePanel.npc[0][0] = new ENEMY_Boss01(gamePanel);
-                gamePanel.npc[0][0].worldx = gamePanel.tileSize * 24;
-                gamePanel.npc[0][0].worldy = gamePanel.tileSize * 22;
+//                gamePanel.npc[0][0] = new ENEMY_Boss01(gamePanel);
+//                gamePanel.npc[0][0].worldx = gamePanel.tileSize * 24;
+//                gamePanel.npc[0][0].worldy = gamePanel.tileSize * 22;
 
-//                gamePanel.npc[1][0] = new NPC_OldMan(gamePanel);
-//                gamePanel.npc[1][0].worldx = gamePanel.tileSize * 24;
-//                gamePanel.npc[1][0].worldy = gamePanel.tileSize * 22;
+                gamePanel.npc[currentMap][0] = new NPC_Cat(gamePanel);
+                gamePanel.npc[currentMap][0].worldx = (int)(gamePanel.tileSize * 24.9);
+                gamePanel.npc[currentMap][0].worldy = gamePanel.tileSize * 24;
 
                 break;
             case 1:
-                gamePanel.npc[1][0] = new NPC_OldMan(gamePanel);
-                gamePanel.npc[1][0].worldx = gamePanel.tileSize * 31;
-                gamePanel.npc[1][0].worldy = gamePanel.tileSize * 26;
+                gamePanel.npc[currentMap][0] = new ENEMY_Boss01(gamePanel);
+                gamePanel.npc[currentMap][0].worldx = gamePanel.tileSize * 36;
+                gamePanel.npc[currentMap][0].worldy = gamePanel.tileSize * 19;
+                break;
+            case 2:
+                gamePanel.npc[currentMap][0] = new ENEMY_Boss01(gamePanel);
+                gamePanel.npc[currentMap][0].worldx = gamePanel.tileSize * 34;
+                gamePanel.npc[currentMap][0].worldy = gamePanel.tileSize * 19;
                 break;
         }
     }

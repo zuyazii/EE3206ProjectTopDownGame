@@ -20,7 +20,8 @@ public class TileManager {
 
         giveTileImage();
         loadMap("/map/map_getQuest.txt", 0);
-        loadMap("/map/map04.txt", 1);
+        loadMap("/map/map_boss01.txt", 1);
+        loadMap("/map/map_boss02.txt", 2);
     }
 
     public void loadMap(String filePath, int map) {

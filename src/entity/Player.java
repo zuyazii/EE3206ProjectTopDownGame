@@ -51,7 +51,7 @@ public class Player extends Entity {
     public void setDefaultValues () {
         worldx = gamePanel.tileSize * 25;
         worldy = gamePanel.tileSize * 26;
-        speed = 4;
+        speed = 6;
         direction = "up";
     }
 

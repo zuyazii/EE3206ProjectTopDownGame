@@ -295,15 +295,19 @@ public class GamePanel extends JPanel implements Runnable {
         switch (currentMap) {
             case 0:
                 player.worldx = tileSize * 25;
-                player.worldy = tileSize * 26;
+                player.worldy = tileSize * 28;
                 player.direction = "up";
                 break;
             case 1:
-                player.worldx = tileSize * 27;  // example starting x coordinate for map 1
-                player.worldy = tileSize * 26;  // example starting y coordinate for map 1
-                player.direction = "right";
+                player.worldx = tileSize * 13;
+                player.worldy = tileSize * 17;
+                player.direction = "down";
                 break;
-            // Add additional cases for other maps as needed.
+            case 2:
+                player.worldx = tileSize * 10;
+                player.worldy = tileSize * 20;
+                player.direction = "down";
+                break;
         }
 
         transitionActive = false;

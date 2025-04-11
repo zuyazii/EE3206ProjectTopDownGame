@@ -19,7 +19,7 @@ public class ENEMY_Boss01 extends Enemy {
         direction = "down";
         enemyNum = 1;
 
-        maxHP = 200;
+        maxHP = 20;
         hp = maxHP;
 
         this.optionDialog = "Continue Battle?";
@@ -92,34 +92,29 @@ public class ENEMY_Boss01 extends Enemy {
 
     @Override
     public void speak() {
-        // Only proceed if we're not already in option mode
+        // Only proceed if we're not already showing a dialogue option.
         if (!gamePanel.ui.showDialogueOptions) {
-            // If we've run out of dialogue lines
-            if (dialogues[dialogueIndex] == null) {
-
-                // If there's a final yes/no prompt
+            // Check if there is a dialogue line to show.
+            if (dialogues[dialogueIndex] == null) { // No more dialogue lines.
                 if (optionDialog != null && !optionDialog.isEmpty()) {
-                    // Prepare the UI to show the yes/no window
+                    // For enemies: trigger a yes/no option prompt.
                     gamePanel.ui.optionText = optionDialog;
                     gamePanel.ui.showDialogueOptions = true;
-                    // Remain in dialogueState so the prompt can be answered
-                }
-                else {
-                    // If there's no optionDialog, just go back to play
+                    System.out.println("Dialogue complete: showing option prompt (" + optionDialog + ")");
+                    // (Do not leave dialogue state until the player answers the prompt.)
+                } else {
+                    // If no option is defined, return to playState.
                     gamePanel.gameState = gamePanel.playState;
                 }
-
-                // Reset so next time the conversation starts from line 0
+                // Reset the dialogue index so next conversation starts at the beginning.
                 dialogueIndex = 0;
-            }
-            else {
-                // Show the next line
+            } else {
+                // There is another dialogue line: show it.
                 gamePanel.ui.currentDialogue = dialogues[dialogueIndex];
                 dialogueIndex++;
             }
         }
     }
-
 
     @Override
     public void performBattleAction() {
