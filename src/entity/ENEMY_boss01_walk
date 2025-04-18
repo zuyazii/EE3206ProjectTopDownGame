@@ -5,6 +5,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
+import event.DoorEvent;
+import event.EventObject;
+
 public class ENEMY_Boss01 extends Enemy {
 
     // Additional idle frames for the boss (total 6 frames)
@@ -80,18 +83,19 @@ public class ENEMY_Boss01 extends Enemy {
     public void update() {
         // Boss remains idle.
     	if (defeated) return; // Don't update if defeated
-
+    	
         // Check if HP reached zero
         if (hp <= 0 && !isDying) {
            startDeathAnimation();
-            return;
         }
         
         if (isDying) {
             updateDeathAnimation();
             return;
         }
-  
+        
+        
+        
     	 setAction();
          
          // Check collision
@@ -153,10 +157,22 @@ public class ENEMY_Boss01 extends Enemy {
     
     private void onDefeated() {
         // Remove this enemy from the NPC array
-        for (int i = 0; i < gamePanel.npc[gamePanel.currentMap].length; i++) {
+    	for (int i = 0; i < gamePanel.npc[gamePanel.currentMap].length; i++) {
             if (gamePanel.npc[gamePanel.currentMap][i] == this) {
                 gamePanel.npc[gamePanel.currentMap][i] = null;
                 break;
+            }
+        }
+        
+        // Update door events
+        for (EventObject ev : gamePanel.eventObjects) {
+            if (ev instanceof DoorEvent) {
+                DoorEvent door = (DoorEvent) ev;
+                if (door.getNextMap() == 2) { // Make sure this matches your target map
+                    door.promptMessage = "Enter the forest..?";
+                    // Set the boss as defeated for door checking
+                    this.isBeatened = true;
+                }
             }
         }
     }
