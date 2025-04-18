@@ -594,7 +594,7 @@ public class UI {
     }
 
     public void drawItemNotification() {
-        int width = gp.tileSize * 8;
+        int width = gp.tileSize * 10;
         int height = gp.tileSize * 2;
         int x = (gp.screenWidth - width) / 2;
         int y = (gp.screenHeight - height) / 2;

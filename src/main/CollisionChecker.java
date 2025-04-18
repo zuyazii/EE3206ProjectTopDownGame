@@ -138,6 +138,14 @@ public class CollisionChecker {
 
         for (int i = 0; i < target.length; i++) {
 
+            Entity e = target[i];
+            if (e == null) continue;
+
+            // skip if the entity is beaten
+            if (e.isBeatened) {
+                continue;
+            }
+
             if (target[i] != null) {
                 // Get entity's solid area position
                 entity.collisionBounds.x = entity.worldx + entity.collisionBounds.x;

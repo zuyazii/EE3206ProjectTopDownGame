@@ -70,7 +70,7 @@ public class GamePanel extends JPanel implements Runnable {
     private boolean mapChanged = false;  // to track when the map switch occurs
 
     // --- Event Objects ---
-    private List<EventObject> eventObjects = new ArrayList<>();
+    public List<EventObject> eventObjects = new ArrayList<>();
     public event.DoorEvent currentDoorEvent = null;
 
     // BATTLE
@@ -85,8 +85,8 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void setupGame() {
-        assetSetter.setObject(currentMap);
         assetSetter.setNPC(currentMap);
+        assetSetter.setObject(currentMap);
 //        playMusic(0);
 //        stopMusic();
         gameState = titleState;
@@ -287,8 +287,8 @@ public class GamePanel extends JPanel implements Runnable {
         eventObjects.clear();
 
         currentMap = nextMap;
-        assetSetter.setObject(currentMap);
         assetSetter.setNPC(currentMap);
+        assetSetter.setObject(currentMap);
 
         // Set player's new start position based on the map.
         // For example, for map 1, you might want to position the player at (5, 5) tiles.

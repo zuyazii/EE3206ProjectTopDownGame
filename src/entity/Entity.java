@@ -12,6 +12,7 @@ import java.util.Random;
 // This stores variables that will be used in player, monster and NPC classes
 public class Entity {
 
+    public boolean isBeatened;
     GamePanel gamePanel;
 
     public int worldx, worldy;

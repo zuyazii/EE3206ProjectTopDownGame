@@ -1,5 +1,7 @@
 package entity;
 
+import event.DoorEvent;
+import event.EventObject;
 import main.GamePanel;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -18,6 +20,7 @@ public class ENEMY_Boss01 extends Enemy {
         speed = 0;
         direction = "down";
         enemyNum = 1;
+        isBeatened = false;
 
         maxHP = 20;
         hp = maxHP;
@@ -48,6 +51,21 @@ public class ENEMY_Boss01 extends Enemy {
 
     @Override
     public void update() {
+        if (hp < 1) {
+            collisonOn = false;
+            isBeatened = true;
+
+            for (EventObject ev : gamePanel.eventObjects) {
+                if (ev instanceof DoorEvent) {
+                    DoorEvent door = (DoorEvent) ev;
+                    if (door.getNextMap() == 2) {
+                        door.promptMessage = "Enter the forest..?";
+                    }
+                }
+            }
+            return;
+        }
+
         // Boss remains idle.
         collisonOn = true;
         spriteCounter++;
@@ -62,6 +80,10 @@ public class ENEMY_Boss01 extends Enemy {
 
     @Override
     public void draw(Graphics2D g2d) {
+        if (hp < 1) {
+            return;
+        }
+
         BufferedImage image = null;
         int screenX = worldx - gamePanel.player.worldx + gamePanel.player.screenX;
         int screenY = worldy - gamePanel.player.worldy + gamePanel.player.screenY;
@@ -81,12 +103,6 @@ public class ENEMY_Boss01 extends Enemy {
                 case 6: image = down6; break;
             }
             g2d.drawImage(image, screenX, screenY, bossWidth, bossHeight, null);
-        }
-
-        // Example: reposition another NPC if defeated.
-        if (gamePanel.npc[0][0].hp < 1) {
-            gamePanel.npc[0][0].worldx = gamePanel.tileSize * 60;
-            gamePanel.npc[0][0].worldy = gamePanel.tileSize * 60;
         }
     }
 

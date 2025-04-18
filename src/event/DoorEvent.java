@@ -33,8 +33,15 @@ public class DoorEvent extends EventObject {
         if (!triggered) {
             triggered = true;
             gp.ui.optionText = promptMessage;
-            gp.ui.showDialogueOptions = true;
-            gp.gameState = gp.dialogueState;
+            if (gp.currentMap == 0) {
+                gp.ui.showDialogueOptions = true;
+                gp.gameState = gp.dialogueState;
+            } else if (gp.npc[gp.currentMap][0].isBeatened == true) {
+                gp.ui.showDialogueOptions = true;
+                gp.gameState = gp.dialogueState;
+            } else if (gp.npc[gp.currentMap][0].isBeatened == false) {
+                gp.ui.showItemNotification(promptMessage);
+            }
         }
     }
 
@@ -77,4 +84,10 @@ public class DoorEvent extends EventObject {
         g2.setColor(Color.RED);
         g2.drawRect(screenX, screenY, collisionBounds.width, collisionBounds.height);
     }
+
+    public int getNextMap() {
+        return nextMap;
+    }
+
+
 }

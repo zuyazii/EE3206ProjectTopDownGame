@@ -150,6 +150,11 @@ public class KeyHandler implements KeyListener {
                 return; // Skip further processing when toggling the inventory.
             }
 
+            if (code == KeyEvent.VK_ENTER && gamePanel.ui.itemNotificationActive) {
+                gamePanel.ui.itemNotificationActive = false;
+                return;
+            }
+
             // If the inventory is active, handle inventory navigation exclusively.
             if (gamePanel.ui.inventoryActive) {
                 // Navigation: Use W/A/S/D to update the cursor position.

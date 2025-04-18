@@ -50,7 +50,11 @@ public class AssetSetter {
                         gamePanel,
                         true
                 );
-                blackholeDoor1.promptMessage = "Enter the forest..?";
+                if (gamePanel.npc[1][0].isBeatened) {
+                    blackholeDoor1.promptMessage = "Enter the forest..?";
+                } else {
+                    blackholeDoor1.promptMessage = "You can't enter the forest now. Beat the enemy first!";
+                }
                 gamePanel.addEventObject(blackholeDoor1);
                 break;
         }
