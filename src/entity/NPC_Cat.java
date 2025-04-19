@@ -12,12 +12,15 @@ public class NPC_Cat extends Entity {
     private boolean hasGivenItem = false; // only give items once
     private int npcWidth;
     private int npcHeight;
+	
     
 
     public NPC_Cat(GamePanel gamePanel) {
         super(gamePanel);
         direction = "down";
         speed = 0; // cat doesn't move
+        isBeatened = false;
+        
 
         // Enlarge sprite to 2x tileSize (for example)
         npcWidth = (int)(gamePanel.tileSize * 1.3);
@@ -42,7 +45,19 @@ public class NPC_Cat extends Entity {
     }
 
     public void setDialogue() {
+    	
         // Add multiple lines
+    	if (gamePanel.npc[2][0] == null && gamePanel.portalNotYetAdded == false) {
+       	 	dialogues[0] = "0w0 \nYou did it! You defeated all the monsters!";
+            dialogues[1] = ">w< \nThank you for saving my friends!";
+            dialogues[2] = "030 \nOur land is safe again because of you.";
+            dialogues[3] = ">w< \nFarewell, brave hero!";
+            dialogues[4] = "0w0 \nMeow~ The adventure ends here!";
+            dialogues[5] = null;
+            dialogues[6] = null;
+            
+        }
+    	else {
     	dialogues[0] = "0w0 \nI am glad that you finally woke up. ";
     	dialogues[1] = "030 \nYou are the hero I summoned. ";
         dialogues[2] = ">w< \nI have a task for you.\nThere are two monsters in the forest. ";
@@ -50,8 +65,10 @@ public class NPC_Cat extends Entity {
         dialogues[4] = ">w< \nI will send you back home after you defeating them. ";
         dialogues[5] = "0w0 \nThese potions will help you.\nPress [e] to open the inventory.\nYou can drink them to heal! ";
         dialogues[6] = ">w0 \nCome back here after defeating the monsters! \nI will wait you here!";
-        // If you have more lines, add them.
+    	// If you have more lines, add them.
+    	}
     }
+    	
 
     @Override
     public void update() {
@@ -95,6 +112,7 @@ public class NPC_Cat extends Entity {
             gamePanel.ui.currentDialogue = dialogues[dialogueIndex];
             dialogueIndex++;
             gamePanel.gameState = gamePanel.dialogueState;
+            
         } else {
             // All dialogue lines have been shown.
             if (!hasGivenItem) {
@@ -110,7 +128,10 @@ public class NPC_Cat extends Entity {
                 dialogues[0] = "I have nothing more to say.\nGood luck!";
                 dialogues[1] = null;
                 dialogues[2] = null;
+             
+             
             }
+            
             // Reset dialogue and (optionally) wait for player to press Enter to exit dialogue.
             dialogueIndex = 0;
             gamePanel.ui.currentDialogue = "";
