@@ -36,7 +36,7 @@ public class ENEMY_Boss01 extends Enemy {
         direction = "down";
         enemyNum = 1;
 
-        maxHP = 20;
+        maxHP = 60;
         hp = maxHP;
         
 
