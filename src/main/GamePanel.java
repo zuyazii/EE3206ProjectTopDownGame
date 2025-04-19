@@ -1,10 +1,12 @@
 package main;
 
 import entity.ENEMY_Boss01;
+import entity.Enemy;
 import entity.Entity;
 import entity.Player;
 import event.DoorEvent;
 import event.EventObject;
+import event.PortalEvent;
 import object.SuperObject;
 import tiles.TileManager;
 
@@ -36,7 +38,7 @@ public class GamePanel extends JPanel implements Runnable {
 //    public final int worldWidth = tileSize * maxWorldCol;
 //    public final int worldHeight = tileSize * maxWorldRow;
     public final int maxMap = 10;
-    public int currentMap = 0;
+    public int currentMap = 2;
 
     // SYSTEM
     TileManager tileManager = new TileManager(this);
@@ -71,9 +73,12 @@ public class GamePanel extends JPanel implements Runnable {
     private int nextMap;
     private boolean mapChanged = false;  // to track when the map switch occurs
 
+    private boolean portalNotYetAdded = true;
+
     // --- Event Objects ---
     public List<EventObject> eventObjects = new ArrayList<>();
     public DoorEvent currentDoorEvent = null;
+    public event.PortalEvent currentPortalEvent;
 
     // BATTLE
     public Battle battle;
@@ -163,6 +168,15 @@ public class GamePanel extends JPanel implements Runnable {
                 }
             }
 
+            if (currentMap == 2 && npc[2][0] == null && portalNotYetAdded) {
+                System.out.println("Adding portal event");
+                PortalEvent portal = new PortalEvent(35 * tileSize, 19 * tileSize, 3*tileSize, 3*tileSize, 0, this);
+                portal.promptMessage = "Teleport back to the castle?";
+                addEventObject(portal);
+                System.out.println("Added portal event");
+                portalNotYetAdded = false;
+            }
+
             // Update NPCs.
             for (int i = 0; i < npc[currentMap].length; i++) {
                 if (npc[currentMap][i] != null) {
@@ -181,7 +195,13 @@ public class GamePanel extends JPanel implements Runnable {
                         }
                     }
                 }
-        }
+            }
+
+            for (EventObject e : eventObjects) {
+                if (e instanceof PortalEvent) {
+                    ((PortalEvent)e).update();
+                }
+            }
 
         // At the end, reset door events for which collision is no longer occurring.
         // This ensures that door events can re-trigger upon re-entry.
@@ -190,6 +210,13 @@ public class GamePanel extends JPanel implements Runnable {
                 DoorEvent door = (DoorEvent) event;
                 if (door.isTriggered() && !door.checkCollision(this)) {
                     door.resetTriggered();
+                }
+            }
+
+            if (event instanceof PortalEvent) {
+                PortalEvent portal = (PortalEvent) event;
+                if (portal.isTriggered() && !portal.checkCollision(this)) {
+                    portal.resetTriggered();
                 }
             }
         }
@@ -214,7 +241,6 @@ public class GamePanel extends JPanel implements Runnable {
         }
         }
     }
-
 
 
 
@@ -328,8 +354,8 @@ public class GamePanel extends JPanel implements Runnable {
                 player.direction = "down";
                 break;
         }
-        assetSetter.setObject(currentMap);
         assetSetter.setNPC(currentMap);
+        assetSetter.setObject(currentMap);
         
         System.out.println("Transition complete! Player at: " + 
             player.worldx + "," + player.worldy);

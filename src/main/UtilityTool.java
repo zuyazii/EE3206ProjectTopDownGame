@@ -1,8 +1,9 @@
 package main;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-
+import java.io.IOException;
 
 
 public class UtilityTool {
@@ -16,5 +17,28 @@ public class UtilityTool {
 
         return scaledImage;
     }
+
+    public BufferedImage[] splitSheet(BufferedImage sheet, int cols, int rows) {
+        int fw = sheet.getWidth()  / cols;
+        int fh = sheet.getHeight() / rows;
+        BufferedImage[] frames = new BufferedImage[cols * rows];
+        int idx = 0;
+        for (int y = 0; y < rows; y++) {
+            for (int x = 0; x < cols; x++) {
+                frames[idx++] = sheet.getSubimage(x*fw, y*fh, fw, fh);
+            }
+        }
+        return frames;
+    }
+
+    public BufferedImage loadImage(String path) {
+        try {
+            return ImageIO.read(getClass().getResourceAsStream(path));
+        } catch (IOException | IllegalArgumentException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
 }

@@ -256,7 +256,25 @@ public class KeyHandler implements KeyListener {
                 }
                 return; // Do nothing else while notification is active.
             }
-            // (2) If a yes/no dialogue option is active (for door events or enemy dialogue)
+            else if (gamePanel.currentPortalEvent != null && gamePanel.ui.showDialogueOptions) {
+                if (code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
+                    gamePanel.ui.optionNum = 0;
+                    gamePanel.playSE(9);
+                } else if (code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
+                    gamePanel.ui.optionNum = 1;
+                    gamePanel.playSE(9);
+                } else if (code == KeyEvent.VK_ENTER) {
+                    if (gamePanel.ui.optionNum == 0) {
+                        gamePanel.currentPortalEvent.triggerPortalTransition(gamePanel);
+                    }
+                    // either way, clear the prompt
+                    gamePanel.currentPortalEvent = null;
+                    gamePanel.ui.showDialogueOptions = false;
+                    gamePanel.gameState = gamePanel.playState;
+                }
+                return;  // consume the key
+            }
+            // If a yes/no dialogue option is active (for door events or enemy dialogue)
             else if (gamePanel.ui.showDialogueOptions) {
                 if (gamePanel.currentDoorEvent != null) {  // door prompt
                     if (code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
@@ -276,7 +294,8 @@ public class KeyHandler implements KeyListener {
                         gamePanel.ui.currentDialogue = "";
                         gamePanel.gameState = gamePanel.playState;
                     }
-                } else {
+                }
+                else {
                     // This branch is for enemy dialogue options.
                     if (code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
                         gamePanel.ui.optionNum = 0;  // YES

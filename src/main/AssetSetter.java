@@ -3,6 +3,7 @@ package main;
 import entity.NPC_Cat;
 import event.DoorEvent;
 import entity.ENEMY_Boss01;
+import event.PortalEvent;
 
 public class AssetSetter {
     GamePanel gamePanel;
@@ -57,6 +58,31 @@ public class AssetSetter {
                     blackholeDoor1.promptMessage = "You can't enter the forest now. Beat the enemy first!";
                 }
                 gamePanel.addEventObject(blackholeDoor1);
+                break;
+            case 2:
+                DoorEvent blackholeDoor2 = new DoorEvent(
+                        8 * gamePanel.tileSize,
+                        19 * gamePanel.tileSize,
+                        gamePanel.tileSize,
+                        gamePanel.tileSize * 3,
+                        1,  // next map number
+                        gamePanel,
+                        true
+                );
+//                blackholeDoor2.promptMessage = "Back to the pond?";
+//                gamePanel.addEventObject(blackholeDoor2);
+//
+//                PortalEvent portal1 = new PortalEvent(
+//                        35 * gamePanel.tileSize,
+//                        19 * gamePanel.tileSize,
+//                        gamePanel.tileSize,
+//                        gamePanel.tileSize * 3,
+//                        1,  // next map number
+//                        gamePanel
+//                );
+//                portal1.promptMessage = "Back to the castle?";
+//                gamePanel.addEventObject(portal1);
+
                 break;
         }
     }
