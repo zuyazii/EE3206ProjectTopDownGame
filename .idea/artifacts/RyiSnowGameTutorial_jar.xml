@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="RyiSnowGameTutorial:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/RyiSnowGameTutorial_jar</output-path>
+    <root id="archive" name="RyiSnowGameTutorial.jar">
+      <element id="module-output" name="RyiSnowGameTutorial" />
+    </root>
+  </artifact>
+</component>

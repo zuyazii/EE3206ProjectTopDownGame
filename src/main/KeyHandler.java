@@ -228,11 +228,6 @@ public class KeyHandler implements KeyListener {
             if (code == KeyEvent.VK_D) {
                 rightPressed = true;
             }
-//            if (code == KeyEvent.VK_P) {
-//                gamePanel.gameState = gamePanel.pauseState;
-//                System.out.println("Game Paused");
-//            }
-
             if (code == KeyEvent.VK_P) {
                 if (gamePanel.gameState == gamePanel.playState) {
                     gamePanel.gameState = gamePanel.pauseState; // Pause the game
@@ -249,27 +244,32 @@ public class KeyHandler implements KeyListener {
             }
         }
 
-//        // PAUSE STATE
-//        else if (gamePanel.gameState == gamePanel.pauseState) {
-//            if (code == KeyEvent.VK_P) {
-//                gamePanel.gameState = gamePanel.playState;
-//                System.out.println("Game Resumed");
-//            }
-//        }
-
-        // Add logic for restart and quit options in pause state
+        // PAUSE STATE
         else if (gamePanel.gameState == gamePanel.pauseState) {
+            if (code == KeyEvent.VK_W) {
+                if (gamePanel.ui.commandNum > 0) {
+                    gamePanel.ui.commandNum--;
+                    gamePanel.playSE(9);
+                }
+            }
+            if (code == KeyEvent.VK_S) {
+                if (gamePanel.ui.commandNum < 2) {
+                    gamePanel.ui.commandNum++;
+                    gamePanel.playSE(9);
+                }
+            }
+            if (code == KeyEvent.VK_ENTER) {
+                if (gamePanel.ui.commandNum == 0) {
+                    gamePanel.playSE(9);
+                    gamePanel.gameState = gamePanel.playState;
+                    gamePanel.playMusic(0);
+                }
+                if (gamePanel.ui.commandNum == 1) {
 
-            if (code == KeyEvent.VK_P) {
-                gamePanel.gameState = gamePanel.playState; // Unpause the game
-                System.out.println("Game Resumed");
-            }
-            else if (code == KeyEvent.VK_R) { // Restart game
-                gamePanel.setupGame();
-                gamePanel.gameState = gamePanel.playState;
-            }
-            else if (code == KeyEvent.VK_Q) { // Quit game
-                System.exit(0);
+                }
+                if (gamePanel.ui.commandNum == 2) {
+                    System.exit(0);
+                }
             }
         }
 

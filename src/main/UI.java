@@ -116,7 +116,7 @@ public class UI {
         }
         // PAUSE STATE
         else if (gp.gameState == gp.pauseState) {
-            drawPauseScreen();
+            drawPauseMenu();
         }
         // DIALOGUE STATE
         else if (gp.gameState == gp.dialogueState) {
@@ -349,12 +349,31 @@ public class UI {
         g2.drawRoundRect(x + 5, y + 5, width - 10, height - 10, 25, 25);
     }
 
-    public void drawPauseScreen() {
-        String text = "Pause";
-        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 60f));
-        int y = gp.screenHeight / 2;
-        int x = getXForCenteredText(text);
-        g2.drawString(text, x, y);
+    private void drawPauseMenu() {
+        g2.setColor(new Color(0, 0, 0, 150)); // Semi-transparent background
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 96f));
+        g2.setColor(Color.WHITE);
+        String pauseText = "Game Paused";
+        g2.drawString(pauseText, getXForCenteredText(pauseText), gp.tileSize * 5);
+
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 34f));
+        String restartText = "UNPAUSE";
+        String quitText = "LOAD SAVE";
+        String unpauseText = "QUIT GAME";
+        g2.drawString(restartText, getXForCenteredText(restartText), gp.tileSize * 7);
+        if (commandNum == 0) {
+            g2.drawString(">", getXForCenteredText(pauseText) - gp.tileSize, gp.tileSize * 7);
+        }
+        g2.drawString(quitText, getXForCenteredText(quitText), gp.tileSize * 7 + 40);
+        if (commandNum == 1) {
+            g2.drawString(">", getXForCenteredText(quitText) - gp.tileSize, gp.tileSize * 7 + 40);
+        }
+        g2.drawString(unpauseText, getXForCenteredText(unpauseText), gp.tileSize * 7 + 80);
+        if (commandNum == 2) {
+            g2.drawString(">", getXForCenteredText(unpauseText) - gp.tileSize, gp.tileSize * 7 + 80);
+        }
     }
 
     public int getXForCenteredText(String text) {
