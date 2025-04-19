@@ -255,7 +255,10 @@ public class GamePanel extends JPanel implements Runnable {
             ui.draw(g2d);
         } else if (gameState == battleState) {
             ui.draw(g2d);
+        } else if (gameState == pauseState) {
+            drawPauseMenu(g2d);
         }
+
         // OTHERS
         else {
             // TILE
@@ -291,6 +294,26 @@ public class GamePanel extends JPanel implements Runnable {
             g2d.fillRect(0, 0, screenWidth, screenHeight);
         }
         g2d.dispose();
+    }
+
+    // Add this method to draw the pause menu
+    private void drawPauseMenu(Graphics2D g2d) {
+        g2d.setColor(new Color(0, 0, 0, 150)); // Semi-transparent background
+        g2d.fillRect(0, 0, screenWidth, screenHeight);
+
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font("Arial", Font.BOLD, 36));
+        String pauseText = "Game Paused";
+        int textWidth = g2d.getFontMetrics().stringWidth(pauseText);
+        g2d.drawString(pauseText, (screenWidth - textWidth) / 2, screenHeight / 3);
+
+        g2d.setFont(new Font("Arial", Font.PLAIN, 24));
+        String restartText = "Press R to Restart";
+        String quitText = "Press Q to Quit";
+        String unpauseText = "Press P to Unpause";
+        g2d.drawString(restartText, screenWidth / 3, screenHeight / 2);
+        g2d.drawString(quitText, screenWidth / 3, screenHeight / 2 + 40);
+        g2d.drawString(unpauseText, screenWidth / 3, screenHeight / 2 + 80);
     }
 
     public void playMusic(int i) {

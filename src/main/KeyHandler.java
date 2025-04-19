@@ -228,20 +228,48 @@ public class KeyHandler implements KeyListener {
             if (code == KeyEvent.VK_D) {
                 rightPressed = true;
             }
+//            if (code == KeyEvent.VK_P) {
+//                gamePanel.gameState = gamePanel.pauseState;
+//                System.out.println("Game Paused");
+//            }
+
             if (code == KeyEvent.VK_P) {
-                gamePanel.gameState = gamePanel.pauseState;
-                System.out.println("Game Paused");
+                if (gamePanel.gameState == gamePanel.playState) {
+                    gamePanel.gameState = gamePanel.pauseState; // Pause the game
+                    System.out.println("Game Paused");
+                }
+//                else if (gamePanel.gameState == gamePanel.pauseState) {
+//                    gamePanel.gameState = gamePanel.playState; // Unpause the game
+//                    System.out.println("Game Resumed");
+//                }
             }
+
             if (code == KeyEvent.VK_ENTER) {
                 enterPressed = true;
             }
         }
 
-        // PAUSE STATE
+//        // PAUSE STATE
+//        else if (gamePanel.gameState == gamePanel.pauseState) {
+//            if (code == KeyEvent.VK_P) {
+//                gamePanel.gameState = gamePanel.playState;
+//                System.out.println("Game Resumed");
+//            }
+//        }
+
+        // Add logic for restart and quit options in pause state
         else if (gamePanel.gameState == gamePanel.pauseState) {
+
             if (code == KeyEvent.VK_P) {
-                gamePanel.gameState = gamePanel.playState;
+                gamePanel.gameState = gamePanel.playState; // Unpause the game
                 System.out.println("Game Resumed");
+            }
+            else if (code == KeyEvent.VK_R) { // Restart game
+                gamePanel.setupGame();
+                gamePanel.gameState = gamePanel.playState;
+            }
+            else if (code == KeyEvent.VK_Q) { // Quit game
+                System.exit(0);
             }
         }
 
