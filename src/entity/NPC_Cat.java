@@ -47,17 +47,8 @@ public class NPC_Cat extends Entity {
     public void setDialogue() {
     	
         // Add multiple lines
-    	if (gamePanel.npc[2][0] == null && gamePanel.portalNotYetAdded == false) {
-       	 	dialogues[0] = "0w0 \nYou did it! You defeated all the monsters!";
-            dialogues[1] = ">w< \nThank you for saving my friends!";
-            dialogues[2] = "030 \nOur land is safe again because of you.";
-            dialogues[3] = ">w< \nFarewell, brave hero!";
-            dialogues[4] = "0w0 \nMeow~ The adventure ends here!";
-            dialogues[5] = null;
-            dialogues[6] = null;
-            
-        }
-    	else {
+    	
+    
     	dialogues[0] = "0w0 \nI am glad that you finally woke up. ";
     	dialogues[1] = "030 \nYou are the hero I summoned. ";
         dialogues[2] = ">w< \nI have a task for you.\nThere are two monsters in the forest. ";
@@ -66,7 +57,7 @@ public class NPC_Cat extends Entity {
         dialogues[5] = "0w0 \nThese potions will help you.\nPress [e] to open the inventory.\nYou can drink them to heal! ";
         dialogues[6] = ">w0 \nCome back here after defeating the monsters! \nI will wait you here!";
     	// If you have more lines, add them.
-    	}
+    	
     }
     	
 
@@ -106,13 +97,22 @@ public class NPC_Cat extends Entity {
         if (dialogueIndex < 0) {
             dialogueIndex = 0;
         }
-
+        if (gamePanel.npc[2][0] == null && gamePanel.portalNotYetAdded == false) {
+       	 	dialogues[0] = "0w0 \nYou did it! You defeated all the monsters!";
+            dialogues[1] = ">w< \nThank you for saving my friends!";
+            dialogues[2] = "030 \nOur land is safe again because of you.";
+            dialogues[3] = ">w< \nFarewell, brave hero!";
+            dialogues[4] = "0w0 \nMeow~ The adventure ends here!";
+            dialogues[5] = null;
+            dialogues[6] = null;
+        }
         if (dialogues[dialogueIndex] != null) {
             // Show the next dialogue line.
             gamePanel.ui.currentDialogue = dialogues[dialogueIndex];
             dialogueIndex++;
             gamePanel.gameState = gamePanel.dialogueState;
-            
+         
+                
         } else {
             // All dialogue lines have been shown.
             if (!hasGivenItem) {
