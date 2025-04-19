@@ -1,7 +1,9 @@
 package main;
 
+import entity.ENEMY_Boss01;
 import entity.Entity;
 import entity.Player;
+import event.DoorEvent;
 import event.EventObject;
 import object.SuperObject;
 import tiles.TileManager;
@@ -71,7 +73,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     // --- Event Objects ---
     public List<EventObject> eventObjects = new ArrayList<>();
-    public event.DoorEvent currentDoorEvent = null;
+    public DoorEvent currentDoorEvent = null;
 
     // BATTLE
     public Battle battle;
@@ -139,8 +141,8 @@ public class GamePanel extends JPanel implements Runnable {
             // Process door events.
             if (currentDoorEvent == null) {
                 for (EventObject event : eventObjects) {
-                    if (event instanceof event.DoorEvent) {
-                        event.DoorEvent door = (event.DoorEvent) event;
+                    if (event instanceof DoorEvent) {
+                        DoorEvent door = (DoorEvent) event;
                         // Only trigger if the door is not already triggered and collision is detected.
                         if (!door.isTriggered() && door.checkCollision(this)) {
                             door.triggerEvent(this);
@@ -165,15 +167,27 @@ public class GamePanel extends JPanel implements Runnable {
             for (int i = 0; i < npc[currentMap].length; i++) {
                 if (npc[currentMap][i] != null) {
                     npc[currentMap][i].update();
+                    
+                    // Additional check for boss defeat
+                    if (npc[currentMap][i] instanceof ENEMY_Boss01 && npc[currentMap][i].isBeatened) {
+                        // This will ensure door events are updated
+                        for (EventObject event : eventObjects) {
+                            if (event instanceof DoorEvent) {
+                                DoorEvent door = (DoorEvent) event;
+                                if (door.getNextMap() == 2) {
+                                    door.promptMessage = "Enter the forest..?";
+                                }
+                            }
+                        }
+                    }
                 }
-            }
         }
 
         // At the end, reset door events for which collision is no longer occurring.
         // This ensures that door events can re-trigger upon re-entry.
         for (EventObject event : eventObjects) {
-            if (event instanceof event.DoorEvent) {
-                event.DoorEvent door = (event.DoorEvent) event;
+            if (event instanceof DoorEvent) {
+                DoorEvent door = (DoorEvent) event;
                 if (door.isTriggered() && !door.checkCollision(this)) {
                     door.resetTriggered();
                 }
@@ -196,6 +210,8 @@ public class GamePanel extends JPanel implements Runnable {
 
         if (gameState == pauseState) {
             // Pause state logic.
+        
+        }
         }
     }
 
@@ -245,7 +261,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Draw dark overlay during map transition.
         if (transitionActive) {
-            g2d.setColor(new java.awt.Color(0, 0, 0, 255));
+            g2d.setColor(new Color(0, 0, 0, 255));
             g2d.fillRect(0, 0, screenWidth, screenHeight);
         }
         g2d.dispose();
@@ -275,11 +291,14 @@ public class GamePanel extends JPanel implements Runnable {
 
     // Start a fade transition. Total duration should be 3000 ms.
     public void startTransition(int nextMap, long duration) {
-        transitionActive = true;
-        this.nextMap = nextMap;
-        transitionDuration = duration;
-        transitionStartTime = System.currentTimeMillis();
-        mapChanged = false;
+        if (!transitionActive) {
+            System.out.println("Starting transition to map " + nextMap);
+            this.nextMap = nextMap;
+            transitionActive = true;
+            transitionDuration = duration;
+            transitionStartTime = System.currentTimeMillis();
+            mapChanged = false;
+        }
     }
 
     // Once transition time has passed, complete the map change.
@@ -309,7 +328,13 @@ public class GamePanel extends JPanel implements Runnable {
                 player.direction = "down";
                 break;
         }
-
+        assetSetter.setObject(currentMap);
+        assetSetter.setNPC(currentMap);
+        
+        System.out.println("Transition complete! Player at: " + 
+            player.worldx + "," + player.worldy);
+        
+        mapChanged = true;
         transitionActive = false;
     }
 

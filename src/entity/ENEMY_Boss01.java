@@ -1,44 +1,55 @@
 package entity;
 
-import event.DoorEvent;
-import event.EventObject;
 import main.GamePanel;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.util.Random;
+
+import event.DoorEvent;
+import event.EventObject;
 
 public class ENEMY_Boss01 extends Enemy {
 
     // Additional idle frames for the boss (total 6 frames)
-    public BufferedImage down3, down4, down5, down6;
+    public BufferedImage down1,down2,down3, down4, down5, down6,left1,left2,right1,right2;
     public int bossWidth;
     public int bossHeight;
-    private final int scaleFactor = 3;
+    private final int scaleFactor = 2;
+    private boolean defeated = false;
+ // Add to your image declarations
+    
+    public BufferedImage[] deathFrames;
+    private int currentDeathFrame = 0;
+    private boolean isDying = false;
+    private int deathAnimationCounter = 0;
+    private final int DEATH_ANIMATION_SPEED = 8; // Adjust for speed
 
-    // --- battle animation fields ---
-//    private BufferedImage[] idleFrames;
-//    private BufferedImage[] cleaveFrames;
-//    private BufferedImage[] takeHitFrames;
-//    private BufferedImage[] deathFrames;
-
-    private int  battSpriteCounter = 0;
-    private int  battSpriteNum     = 1;
-    private String battState       = "idle";
-    private boolean animLocked     = false;
-
+    private String lastMovingDirection = "down"; // Tracks last movement direction
+    private boolean wasMoving = false; // Tracks if entity was moving last frame
+    
     public ENEMY_Boss01(GamePanel gamePanel) {
         super(gamePanel);
         // Boss is static.
-        speed = 0;
+        speed = 1;
         direction = "down";
         enemyNum = 1;
-        isBeatened = false;
 
-        maxHP = 50;
+        maxHP = 20;
         hp = maxHP;
+        
 
-        this.optionDialog = "Continue Battle?";
+        this.optionDialog = "Battle?";
 
-        // Load idle animation images.
+       
+        setDialogue();
+        setBossSize((int)(scaleFactor), (int)(scaleFactor*1.5));
+        getImage();
+    }
+    
+    public void getImage() {
+    	 // Load idle animation images.
         down1 = setup("/enemies/boss_02/01_demon_idle/demon_idle_1");
         down2 = setup("/enemies/boss_02/01_demon_idle/demon_idle_2");
         down3 = setup("/enemies/boss_02/01_demon_idle/demon_idle_3");
@@ -46,26 +57,24 @@ public class ENEMY_Boss01 extends Enemy {
         down5 = setup("/enemies/boss_02/01_demon_idle/demon_idle_5");
         down6 = setup("/enemies/boss_02/01_demon_idle/demon_idle_6");
 
-        setDialogue();
-        setBossSize(scaleFactor, scaleFactor);
+        left1 = setup("/enemies/boss_02/02_demon_walk/demon_walk_1");
+        left2 = setup("/enemies/boss_02/02_demon_walk/demon_walk_3");
+        
+        right1 = setup("/enemies/boss_02/02_demon_walk/demon_walk_1");
+        right1 = flipHorizontally(right1);
+        right2 = setup("/enemies/boss_02/02_demon_walk/demon_walk_3");
+        right2 = flipHorizontally(right2);
 
-        // load battle sprites
-        idleFrames     = loadSeries("/enemies/boss_02/01_demon_idle/demon_idle_", 6);
-        atkFrames   = loadSeries("/enemies/boss_02/03_demon_cleave/demon_cleave_", 15);
-        takeHitFrames  = loadSeries("/enemies/boss_02/04_demon_take_hit/demon_take_hit_", 5);
-        deathFrames    = loadSeries("/enemies/boss_02/05_demon_death/demon_death_", 22);
-    }
-
-    private BufferedImage[] loadSeries(String basePath, int count) {
-        BufferedImage[] arr = new BufferedImage[count];
-        for (int i = 0; i < count; i++) {
-            arr[i] = setup(basePath + (i+1));
-        }
-        return arr;
+        // Add to your getImage() method
+        deathFrames = new BufferedImage[4]; // Assuming 4 frames
+        deathFrames[0] = setup("/enemies/boss_02/05_demon_death/demon_death_10");
+        deathFrames[1] = setup("/enemies/boss_02/05_demon_death/demon_death_12");
+        deathFrames[2] = setup("/enemies/boss_02/05_demon_death/demon_death_14");
+        deathFrames[3] = setup("/enemies/boss_02/05_demon_death/demon_death_16");
     }
 
     private void setDialogue() {
-        dialogues[0] = "erm";
+        dialogues[0] = "erm!!!!!!!!!!!!!!!!";
     }
 
     public void setBossSize(int widthMultiplier, int heightMultiplier) {
@@ -76,10 +85,14 @@ public class ENEMY_Boss01 extends Enemy {
 
     @Override
     public void update() {
-        if (hp < 1) {
-            collisonOn = false;
-            isBeatened = true;
-
+        // Boss remains idle.
+    	if (defeated) {
+            return; // Don't update if defeated
+        }
+    	
+        // Check if HP reached zero
+        if (hp <= 0 && !isDying) {
+           startDeathAnimation();
             for (EventObject ev : gamePanel.eventObjects) {
                 if (ev instanceof DoorEvent) {
                     DoorEvent door = (DoorEvent) ev;
@@ -88,48 +101,172 @@ public class ENEMY_Boss01 extends Enemy {
                     }
                 }
             }
+        }
+        
+        if (isDying) {
+            updateDeathAnimation();
             return;
         }
+        
+        
+        
+    	 setAction();
+         
+         // Check collision
+         collisonOn = false;
+         gamePanel.collisionChecker.checkTile(this);
+         
+         boolean isMovingThisFrame = false;
+         // If collision is false, enemy can move
+         if (!collisonOn) {
+             switch(direction) {
+                 case "up": worldy -= speed; isMovingThisFrame = true; break;
+                 case "down": worldy += speed; isMovingThisFrame = true; break;
+                 case "left": worldx -= speed; isMovingThisFrame = true; break;
+                 case "right": worldx += speed; isMovingThisFrame = true; break;
+             }
+         }   
+         
+         
+             
+      // Animation counter
+         spriteCounter++;
+         if (spriteCounter > 6) {  // Animation speed
+             if (spriteNumber < 4) {
+                 spriteNumber++;
+             } else {
+                 spriteNumber = 1;
+             }
+             spriteCounter = 0;
+         } 
+         
+         if (isMovingThisFrame) {
+             lastMovingDirection = direction;
+             wasMoving = true;
+         } else {
+             wasMoving = false;
+         }
+    }
+    
+    private void startDeathAnimation() {
+        isDying = true;
+        currentDeathFrame = 0;
+        deathAnimationCounter = 0;
+        gamePanel.playSE(4); // Play death sound
+    }
 
-        // Boss remains idle.
-        collisonOn = true;
-        spriteCounter++;
-        if (spriteCounter > 10) {
-            spriteNumber++;
-            if (spriteNumber > 6) {
-                spriteNumber = 1;
+    private void updateDeathAnimation() {
+        deathAnimationCounter++;
+        if (deathAnimationCounter > DEATH_ANIMATION_SPEED) {
+            currentDeathFrame++;
+            deathAnimationCounter = 0;
+            
+            if (currentDeathFrame >= deathFrames.length) {
+                defeated = true;
+                onDefeated();
             }
-            spriteCounter = 0;
         }
     }
 
+    
+    private void onDefeated() {
+        // Remove this enemy from the NPC array
+    	for (int i = 0; i < gamePanel.npc[gamePanel.currentMap].length; i++) {
+            if (gamePanel.npc[gamePanel.currentMap][i] == this) {
+                gamePanel.npc[gamePanel.currentMap][i] = null;
+                break;
+            }
+        }
+        
+        // Update door events
+        for (EventObject ev : gamePanel.eventObjects) {
+            if (ev instanceof DoorEvent) {
+                DoorEvent door = (DoorEvent) ev;
+                if (door.getNextMap() == 2) { // Make sure this matches your target map
+                    door.promptMessage = "Enter the forest..?";
+                    // Set the boss as defeated for door checking
+                    this.isBeatened = true;
+                }
+            }
+        }
+    }
     @Override
     public void draw(Graphics2D g2d) {
-        if (hp < 1) {
-            return;
-        }
-
-        BufferedImage image = null;
+    	if(defeated)return;
+        
         int screenX = worldx - gamePanel.player.worldx + gamePanel.player.screenX;
         int screenY = worldy - gamePanel.player.worldy + gamePanel.player.screenY;
 
-        // Only draw if within the player's view.
-        if (worldx + bossWidth > gamePanel.player.worldx - gamePanel.player.screenX &&
-                worldx - bossWidth < gamePanel.player.worldx + gamePanel.player.screenX &&
-                worldy + bossHeight > gamePanel.player.worldy - gamePanel.player.screenY &&
-                worldy - bossHeight < gamePanel.player.worldy + gamePanel.player.screenY) {
-
-            switch (spriteNumber) {
-                case 1: image = down1; break;
-                case 2: image = down2; break;
-                case 3: image = down3; break;
-                case 4: image = down4; break;
-                case 5: image = down5; break;
-                case 6: image = down6; break;
-            }
+        if (isDying) {
+            // Draw current death frame
+            g2d.drawImage(deathFrames[currentDeathFrame], screenX, screenY, bossWidth, bossHeight, null);
+        } 
+        else if (isInView()) {
+            // Draw movement animation
+            BufferedImage image = getCurrentAnimationFrame();
             g2d.drawImage(image, screenX, screenY, bossWidth, bossHeight, null);
         }
     }
+        private BufferedImage getCurrentAnimationFrame() {
+        	String useDirection = wasMoving ? direction : lastMovingDirection;
+        	switch (useDirection) {
+                case "up":
+                    switch(spriteNumber) {
+                        case 1: return right1;
+                        case 2: return right2;
+
+                    }
+                    break;
+                case "down":
+                    switch(spriteNumber) {
+                        case 1: return left1;
+                        case 2: return left2;
+
+                    }
+                    break;
+                case "left":
+                    switch(spriteNumber) {
+                        case 1: return left1;
+                        case 2: return left2;
+
+                    }
+                    break;
+                case "right":
+                    switch(spriteNumber) {
+                        case 1: return right1;
+                        case 2: return right2;
+         
+                    }
+                    break;
+            }
+        	switch(lastMovingDirection) {
+            case "up": return right2;
+            case "down": return left2;
+            case "left": return left2;
+            case "right": return right2;
+            default: return left2;
+        }
+           
+        }
+        
+        public void setAction() {
+        	if (isDying) return;
+            
+            actionLockCounter++;
+            if(actionLockCounter == 80) {
+            	Random random = new Random();
+                int i = random.nextInt(100) + 1;
+                
+                if (i <= 25) direction = "up";
+                else if (i <= 50) direction = "down";
+                else if (i <= 75) direction = "left";
+                else direction = "right";
+                
+                actionLockCounter = 0;
+            }
+        }
+        
+       
 
     @Override
     public void speak() {
@@ -156,66 +293,39 @@ public class ENEMY_Boss01 extends Enemy {
             }
         }
     }
+    
 
     @Override
     public void performBattleAction() {
-        // Implement enemy-specific battle logic here.
+    	if (defeated) return;// Implement enemy-specific battle logic here.
+    }
+    
+    private boolean isInView() {
+        return worldx + bossWidth > gamePanel.player.worldx - gamePanel.player.screenX &&
+               worldx - bossWidth < gamePanel.player.worldx + gamePanel.player.screenX &&
+               worldy + bossHeight > gamePanel.player.worldy - gamePanel.player.screenY &&
+               worldy - bossHeight < gamePanel.player.worldy + gamePanel.player.screenY;
     }
 
-    @Override
-    public void updateBattleAnimation() {
-        battSpriteCounter++;
-        if (battSpriteCounter > 10) {
-            battSpriteNum++;
-            battSpriteCounter = 0;
-            int frameCount = getFrameCount(battState);
-            if (battSpriteNum > frameCount) {
-                if (!battState.equals("idle")) {
-                    battState      = "idle";
-                    battSpriteNum  = 1;
-                    animLocked     = false;
-                } else {
-                    battSpriteNum = 1;
-                }
-            }
-        }
-    }
+    public BufferedImage flipHorizontally(BufferedImage src) {
+        // 1. 建立一個水平縮放 -1 的 AffineTransform
+        AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
+        // 2. 將座標系向右平移一個影像寬度，否則圖像會被畫到負座標
+        tx.translate(-src.getWidth(), 0);
 
-    @Override
-    public void drawBattleSprite(Graphics2D g2, int x, int y) {
-        if (hp < 1) return;               // dead = don't draw
-        BufferedImage frame = null;
-        switch (battState) {
-            case "idle":     frame = idleFrames[battSpriteNum-1];     break;
-            case "cleave":   frame = atkFrames[battSpriteNum-1];   break;
-            case "take_hit": frame = takeHitFrames[battSpriteNum-1];  break;
-            case "death":    frame = deathFrames[battSpriteNum-1];    break;
-        }
-        // same offsets as before:
-        g2.drawImage(frame,
-                x - gamePanel.tileSize*2,
-                y - gamePanel.tileSize*3,
-                gamePanel.tileSize*5, gamePanel.tileSize*5,
-                null
+        // 3. 建立對應的轉換操作，選擇最近鄰或雙線性插值
+        AffineTransformOp op = new AffineTransformOp(
+                tx,
+                AffineTransformOp.TYPE_NEAREST_NEIGHBOR
         );
+
+        // 4. 應用轉換
+        return op.filter(src, null);
     }
 
-    private int getFrameCount(String state) {
-        switch(state) {
-            case "idle":     return idleFrames.length;
-            case "cleave":   return atkFrames.length;
-            case "take_hit": return takeHitFrames.length;
-            case "death":    return deathFrames.length;
-        }
-        return 1;
+    /** Allow subclasses to do per‑frame battle‐animation updates. */
+    public void updateBattleAnimation() {
+        // default: do nothing
     }
-
-    public void triggerBattleAnimation(String state, int duration) {
-        // e.g.
-        this.battState       = state;
-        this.battSpriteNum   = 1;
-        this.battSpriteCounter = 0;
-        // optionally lock it so updateBattleAnimation knows
-    }
-
 }
+

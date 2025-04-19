@@ -1,18 +1,18 @@
 package entity;
 
 import main.GamePanel;
-import object.OBJ_Potion_Red;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import javax.imageio.ImageIO;
 
 public class NPC_Cat extends Entity {
 
     private boolean hasGivenItem = false; // only give items once
     private int npcWidth;
     private int npcHeight;
+    
 
     public NPC_Cat(GamePanel gamePanel) {
         super(gamePanel);
@@ -43,9 +43,13 @@ public class NPC_Cat extends Entity {
 
     public void setDialogue() {
         // Add multiple lines
-        dialogues[0] = "I have a task for you.\nThere are two monsters in the forest.";
-        dialogues[1] = "They are killing my friends.\nPlease defeat them!";
-        dialogues[2] = "These potions will help you.\nDrink them to heal!";
+    	dialogues[0] = "0w0 \nI am glad that you finally woke up. ";
+    	dialogues[1] = "030 \nYou are the hero I summoned. ";
+        dialogues[2] = ">w< \nI have a task for you.\nThere are two monsters in the forest. ";
+        dialogues[3] = "@w@ \nThey are killing my friends.  \nPlease defeat them!" ;
+        dialogues[4] = ">w< \nI will send you back home after you defeating them. ";
+        dialogues[5] = "0w0 \nThese potions will help you.\nDrink them to heal! ";
+        
         // If you have more lines, add them.
     }
 
@@ -58,6 +62,7 @@ public class NPC_Cat extends Entity {
             spriteCounter = 0;
         }
     }
+    
 
     @Override
     public void draw(Graphics2D g2) {
@@ -70,7 +75,11 @@ public class NPC_Cat extends Entity {
                 worldy + npcHeight > gamePanel.player.worldy - gamePanel.player.screenY &&
                 worldy - npcHeight < gamePanel.player.worldy + gamePanel.player.screenY) {
 
-            BufferedImage image = (spriteNumber == 1) ? down1 : down2;
+            BufferedImage image;
+			if (spriteNumber == 1)
+				image = down1;
+			else
+				image = down2;
             g2.drawImage(image, screenX, screenY, npcWidth, npcHeight, null);
         }
     }

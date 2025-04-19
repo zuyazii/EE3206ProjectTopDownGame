@@ -2,8 +2,6 @@ package entity;
 
 import main.GamePanel;
 
-import java.awt.*;
-
 public abstract class NPC extends Entity {
 
     // Dialogue fields.

@@ -11,7 +11,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Random;
 
 public class Player extends Entity {
     KeyHandler keyHandler;
@@ -204,6 +203,7 @@ public class Player extends Entity {
         }
     }
 
+   
     public void draw(Graphics2D g2d) {
         // g2d.setColor(Color.BLACK);
         // g2d.fillRect(x, y, gamePanel.tileSize, gamePanel.tileSize);
@@ -244,6 +244,8 @@ public class Player extends Entity {
                 }
                 break;
         }
+        
+        
         g2d.drawImage(image, screenX, screenY, gamePanel.tileSize, gamePanel.tileSize, null);
     }
 
@@ -262,3 +264,4 @@ public class Player extends Entity {
         g2.drawRect(drawX, drawY, collisionBounds.width, collisionBounds.height);
     }
 }
+

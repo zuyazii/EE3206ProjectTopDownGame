@@ -2,6 +2,10 @@ package event;
 
 import main.GamePanel;
 import javax.imageio.ImageIO;
+
+import entity.ENEMY_Boss01;
+import entity.Entity;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -26,24 +30,25 @@ public class DoorEvent extends EventObject {
             doorImage = null;
         }
         // Adjust collision bounds: start half a tile above the door and extend 1.5 tiles tall.
-        collisionBounds = new Rectangle(-width/2, -height / 2, width + (int)(gamePanel.tileSize), height + (int)(gamePanel.tileSize));
+        collisionBounds = new Rectangle(-width/2, -height / 2, width, height + (int)(gamePanel.tileSize));
     }
 
     @Override
     public void triggerEvent(GamePanel gp) {
-        if (!triggered) {
-            triggered = true;
-            gp.ui.optionText = promptMessage;
-            if (!needEnemyBeDefeated) {
-                gp.ui.showDialogueOptions = true;
-                gp.gameState = gp.dialogueState;
-            } else if (gp.npc[gp.currentMap][0].isBeatened == true) {
-                gp.ui.showDialogueOptions = true;
-                gp.gameState = gp.dialogueState;
-            } else if (gp.npc[gp.currentMap][0].isBeatened == false) {
-                gp.ui.showItemNotification(promptMessage);
-            }
-        }
+    	 if (!triggered) {
+    	     triggered = true;
+    	     gp.ui.optionText = promptMessage;
+
+             if (!needEnemyBeDefeated) {
+                 gp.ui.showDialogueOptions = true;
+                 gp.gameState = gp.dialogueState;
+             } else if (gp.npc[gp.currentMap][0] == null) {
+                 gp.ui.showDialogueOptions = true;
+                 gp.gameState = gp.dialogueState;
+             } else if (gp.npc[gp.currentMap][0].isBeatened == false) {
+                 gp.ui.showItemNotification(promptMessage);
+             }
+    	 }
     }
 
     /**
@@ -64,7 +69,10 @@ public class DoorEvent extends EventObject {
     public void triggerDoorTransition(GamePanel gp) {
         if (!gp.isTransitionActive()) {
             System.out.println("Door triggered: transitioning to map " + nextMap);
-            gp.startTransition(nextMap, 3000);
+            gp.startTransition(nextMap, 1000);
+            gp.currentDoorEvent = null; // Clear the current door event
+            gp.ui.showDialogueOptions = false; // Close the dialogue options
+            gp.gameState = gp.playState;
         }
     }
 

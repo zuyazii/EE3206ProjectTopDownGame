@@ -30,4 +30,6 @@ public class SuperObject {
 
     public void setNextMap(int i) {
     }
+    
+    
 }
