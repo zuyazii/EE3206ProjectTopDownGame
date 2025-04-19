@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
+import entity.Enemy;
 import entity.Player;
 import object.OBJ_Key;
 
@@ -70,7 +71,7 @@ public class UI {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        loadEnemySprites();
+//        loadEnemySprites();
     }
 
     // Show a battle notification that remains on screen until dismissed.
@@ -258,9 +259,14 @@ public class UI {
         x = gp.screenWidth / 2 - (gp.tileSize * 2) / 2 + gp.tileSize;
         y = (int)(gp.tileSize * 4.5);
 
+        // **Delegate animation to the Enemy itself** **
+        Enemy enemy = (Enemy)gp.npc[gp.currentMap][0];
+        enemy.updateBattleAnimation();
+        enemy.drawBattleSprite(g2, x, y);
+
         // Update which frame we should be on and draw the enemy
-        updateEnemyAnimation();
-        drawEnemyAnimation(g2, x, y);
+//        updateEnemyAnimation();
+//        drawEnemyAnimation(g2, x, y);
 
         // Define the subwindow for the battle menu/notification.
         int subX = (int)(gp.tileSize * 2.5);
@@ -362,31 +368,31 @@ public class UI {
         return (gp.screenWidth / 2 - length / 2);
     }
 
-    public void loadEnemySprites() {
-        // Load "idle" frames
-        demonIdleFrames = new BufferedImage[6];
-        for (int i = 0; i < 6; i++) {
-            demonIdleFrames[i] = loadImage("/enemies/boss_02/01_demon_idle/demon_idle_" + (i + 1));
-        }
-
-        // Load "cleave" frames (example, if you have 6 frames)
-        demonCleaveFrames = new BufferedImage[15];
-        for (int i = 0; i < 15; i++) {
-            demonCleaveFrames[i] = loadImage("/enemies/boss_02/03_demon_cleave/demon_cleave_" + (i + 1));
-        }
-
-        // Load "take hit" frames
-        demonTakeHitFrames = new BufferedImage[5];
-        for (int i = 0; i < 5; i++) {
-            demonTakeHitFrames[i] = loadImage("/enemies/boss_02/04_demon_take_hit/demon_take_hit_" + (i + 1));
-        }
-
-        // Load "death" frames
-        demonDeathFrames = new BufferedImage[22];
-        for (int i = 0; i < 22; i++) {
-            demonDeathFrames[i] = loadImage("/enemies/boss_02/05_demon_death/demon_death_" + (i + 1));
-        }
-    }
+//    public void loadEnemySprites() {
+//        // Load "idle" frames
+//        demonIdleFrames = new BufferedImage[6];
+//        for (int i = 0; i < 6; i++) {
+//            demonIdleFrames[i] = loadImage("/enemies/boss_02/01_demon_idle/demon_idle_" + (i + 1));
+//        }
+//
+//        // Load "cleave" frames (example, if you have 6 frames)
+//        demonCleaveFrames = new BufferedImage[15];
+//        for (int i = 0; i < 15; i++) {
+//            demonCleaveFrames[i] = loadImage("/enemies/boss_02/03_demon_cleave/demon_cleave_" + (i + 1));
+//        }
+//
+//        // Load "take hit" frames
+//        demonTakeHitFrames = new BufferedImage[5];
+//        for (int i = 0; i < 5; i++) {
+//            demonTakeHitFrames[i] = loadImage("/enemies/boss_02/04_demon_take_hit/demon_take_hit_" + (i + 1));
+//        }
+//
+//        // Load "death" frames
+//        demonDeathFrames = new BufferedImage[22];
+//        for (int i = 0; i < 22; i++) {
+//            demonDeathFrames[i] = loadImage("/enemies/boss_02/05_demon_death/demon_death_" + (i + 1));
+//        }
+//    }
 
     private BufferedImage loadImage(String path) {
         try {
@@ -397,62 +403,62 @@ public class UI {
         }
     }
 
-    public void updateEnemyAnimation() {
-        enemySpriteCounter++;
-        if (enemySpriteCounter > 10) {
-            enemySpriteNum++;
-            enemySpriteCounter = 0;
-            int frameCount = getFrameCountForState(enemyState);
-            if (enemySpriteNum > frameCount) {
-                if (!enemyState.equals("idle")) {
-                    enemyState = "idle";
-                    enemySpriteNum = 1;
-                    animationLocked = false;
-                } else {
-                    enemySpriteNum = 1;
-                }
-            }
-        }
-    }
+//    public void updateEnemyAnimation() {
+//        enemySpriteCounter++;
+//        if (enemySpriteCounter > 10) {
+//            enemySpriteNum++;
+//            enemySpriteCounter = 0;
+//            int frameCount = getFrameCountForState(enemyState);
+//            if (enemySpriteNum > frameCount) {
+//                if (!enemyState.equals("idle")) {
+//                    enemyState = "idle";
+//                    enemySpriteNum = 1;
+//                    animationLocked = false;
+//                } else {
+//                    enemySpriteNum = 1;
+//                }
+//            }
+//        }
+//    }
 
-    private int getFrameCountForState(String state) {
-        switch(state) {
-            case "idle":
-                return demonIdleFrames != null ? demonIdleFrames.length : 0;
-            case "walk":
-                return demonWalkFrames != null ? demonWalkFrames.length : 0;
-            case "cleave":
-                return demonCleaveFrames != null ? demonCleaveFrames.length : 0;
-            case "take_hit":
-                return demonTakeHitFrames != null ? demonTakeHitFrames.length : 0;
-            case "death":
-                return demonDeathFrames != null ? demonDeathFrames.length : 0;
-            default:
-                return 1;
-        }
-    }
+//    private int getFrameCountForState(String state) {
+//        switch(state) {
+//            case "idle":
+//                return demonIdleFrames != null ? demonIdleFrames.length : 0;
+//            case "walk":
+//                return demonWalkFrames != null ? demonWalkFrames.length : 0;
+//            case "cleave":
+//                return demonCleaveFrames != null ? demonCleaveFrames.length : 0;
+//            case "take_hit":
+//                return demonTakeHitFrames != null ? demonTakeHitFrames.length : 0;
+//            case "death":
+//                return demonDeathFrames != null ? demonDeathFrames.length : 0;
+//            default:
+//                return 1;
+//        }
+//    }
 
-    private void drawEnemyAnimation(Graphics2D g2, int x, int y) {
-        BufferedImage frame = null;
-        switch (enemyState) {
-            case "idle":
-                frame = demonIdleFrames[enemySpriteNum - 1];
-                break;
-            case "walk":
-                frame = demonWalkFrames[enemySpriteNum - 1];
-                break;
-            case "cleave":
-                frame = demonCleaveFrames[enemySpriteNum - 1];
-                break;
-            case "take_hit":
-                frame = demonTakeHitFrames[enemySpriteNum - 1];
-                break;
-            case "death":
-                frame = demonDeathFrames[enemySpriteNum - 1];
-                break;
-        }
-        g2.drawImage(frame, x - gp.tileSize * 2, y - gp.tileSize * 3, gp.tileSize * 5, gp.tileSize * 5, null);
-    }
+//    private void drawEnemyAnimation(Graphics2D g2, int x, int y) {
+//        BufferedImage frame = null;
+//        switch (enemyState) {
+//            case "idle":
+//                frame = demonIdleFrames[enemySpriteNum - 1];
+//                break;
+//            case "walk":
+//                frame = demonWalkFrames[enemySpriteNum - 1];
+//                break;
+//            case "cleave":
+//                frame = demonCleaveFrames[enemySpriteNum - 1];
+//                break;
+//            case "take_hit":
+//                frame = demonTakeHitFrames[enemySpriteNum - 1];
+//                break;
+//            case "death":
+//                frame = demonDeathFrames[enemySpriteNum - 1];
+//                break;
+//        }
+//        g2.drawImage(frame, x - gp.tileSize * 2, y - gp.tileSize * 3, gp.tileSize * 5, gp.tileSize * 5, null);
+//    }
 
     public void setEnemyState(String newState) {
         enemyState = newState;

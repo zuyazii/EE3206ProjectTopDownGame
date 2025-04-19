@@ -11,6 +11,7 @@ public class DoorEvent extends EventObject {
     private BufferedImage doorImage;
     // New flag: becomes true when the event’s dialogue has been displayed.
     private boolean triggered = false;
+    public boolean needEnemyBeDefeated = false;
 
     public DoorEvent(int worldx, int worldy, int width, int height, int nextMap, GamePanel gamePanel, boolean isBlackhole) {
         super(worldx, worldy, width, height);
@@ -25,7 +26,7 @@ public class DoorEvent extends EventObject {
             doorImage = null;
         }
         // Adjust collision bounds: start half a tile above the door and extend 1.5 tiles tall.
-        collisionBounds = new Rectangle(-width/2, -height / 2, width, height + (int)(gamePanel.tileSize));
+        collisionBounds = new Rectangle(-width/2, -height / 2, width + (int)(gamePanel.tileSize), height + (int)(gamePanel.tileSize));
     }
 
     @Override
@@ -33,7 +34,7 @@ public class DoorEvent extends EventObject {
         if (!triggered) {
             triggered = true;
             gp.ui.optionText = promptMessage;
-            if (gp.currentMap == 0) {
+            if (!needEnemyBeDefeated) {
                 gp.ui.showDialogueOptions = true;
                 gp.gameState = gp.dialogueState;
             } else if (gp.npc[gp.currentMap][0].isBeatened == true) {

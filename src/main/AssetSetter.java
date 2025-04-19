@@ -1,5 +1,6 @@
 package main;
 
+import entity.ENEMY_Boss02;
 import entity.NPC_Cat;
 import event.DoorEvent;
 import entity.ENEMY_Boss01;
@@ -50,12 +51,26 @@ public class AssetSetter {
                         gamePanel,
                         true
                 );
+                blackholeDoor1.needEnemyBeDefeated = true;
                 if (gamePanel.npc[1][0].isBeatened) {
                     blackholeDoor1.promptMessage = "Enter the forest..?";
                 } else {
                     blackholeDoor1.promptMessage = "You can't enter the forest now. Beat the enemy first!";
                 }
                 gamePanel.addEventObject(blackholeDoor1);
+                break;
+            case 2:
+                DoorEvent blackholeDoor2 = new DoorEvent(
+                        8 * gamePanel.tileSize,
+                        19 * gamePanel.tileSize,
+                        gamePanel.tileSize,
+                        gamePanel.tileSize * 3,
+                        1,  // next map number
+                        gamePanel,
+                        true
+                );
+                blackholeDoor2.promptMessage = "Back to the pond?";
+                gamePanel.addEventObject(blackholeDoor2);
                 break;
         }
     }
@@ -78,8 +93,8 @@ public class AssetSetter {
                 gamePanel.npc[currentMap][0].worldy = gamePanel.tileSize * 19;
                 break;
             case 2:
-                gamePanel.npc[currentMap][0] = new ENEMY_Boss01(gamePanel);
-                gamePanel.npc[currentMap][0].worldx = gamePanel.tileSize * 34;
+                gamePanel.npc[currentMap][0] = new ENEMY_Boss02(gamePanel);
+                gamePanel.npc[currentMap][0].worldx = gamePanel.tileSize * 33;
                 gamePanel.npc[currentMap][0].worldy = gamePanel.tileSize * 19;
                 break;
         }

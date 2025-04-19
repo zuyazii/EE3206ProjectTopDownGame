@@ -1,59 +1,47 @@
 package entity;
 
-import event.DoorEvent;
-import event.EventObject;
 import main.GamePanel;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class ENEMY_Boss01 extends Enemy {
+public class ENEMY_Boss02 extends Enemy {
 
-    // Additional idle frames for the boss (total 6 frames)
-    public BufferedImage down3, down4, down5, down6;
     public int bossWidth;
     public int bossHeight;
     private final int scaleFactor = 3;
 
-    // --- battle animation fields ---
 //    private BufferedImage[] idleFrames;
-//    private BufferedImage[] cleaveFrames;
+//    private BufferedImage[] walkFrames;
+//    private BufferedImage[] atkFrames;
 //    private BufferedImage[] takeHitFrames;
 //    private BufferedImage[] deathFrames;
 
     private int  battSpriteCounter = 0;
     private int  battSpriteNum     = 1;
     private String battState       = "idle";
-    private boolean animLocked     = false;
 
-    public ENEMY_Boss01(GamePanel gamePanel) {
+    public ENEMY_Boss02(GamePanel gamePanel) {
         super(gamePanel);
-        // Boss is static.
-        speed = 0;
-        direction = "down";
-        enemyNum = 1;
+
+        speed      = 0;
+        direction  = "down";
+        enemyNum   = 2;
         isBeatened = false;
 
-        maxHP = 50;
-        hp = maxHP;
+        maxHP = 100;
+        hp    = maxHP;
 
         this.optionDialog = "Continue Battle?";
-
-        // Load idle animation images.
-        down1 = setup("/enemies/boss_02/01_demon_idle/demon_idle_1");
-        down2 = setup("/enemies/boss_02/01_demon_idle/demon_idle_2");
-        down3 = setup("/enemies/boss_02/01_demon_idle/demon_idle_3");
-        down4 = setup("/enemies/boss_02/01_demon_idle/demon_idle_4");
-        down5 = setup("/enemies/boss_02/01_demon_idle/demon_idle_5");
-        down6 = setup("/enemies/boss_02/01_demon_idle/demon_idle_6");
 
         setDialogue();
         setBossSize(scaleFactor, scaleFactor);
 
         // load battle sprites
-        idleFrames     = loadSeries("/enemies/boss_02/01_demon_idle/demon_idle_", 6);
-        atkFrames   = loadSeries("/enemies/boss_02/03_demon_cleave/demon_cleave_", 15);
-        takeHitFrames  = loadSeries("/enemies/boss_02/04_demon_take_hit/demon_take_hit_", 5);
-        deathFrames    = loadSeries("/enemies/boss_02/05_demon_death/demon_death_", 22);
+        idleFrames     = loadSeries("/enemies/boss_03/idle/idle_", 6);
+        atkFrames   = loadSeries("/enemies/boss_03/1_atk/1_atk_", 14);
+        takeHitFrames  = loadSeries("/enemies/boss_03/take_hit/take_hit_", 7);
+        deathFrames    = loadSeries("/enemies/boss_03/death/death_", 16);
     }
 
     private BufferedImage[] loadSeries(String basePath, int count) {
@@ -68,35 +56,39 @@ public class ENEMY_Boss01 extends Enemy {
         dialogues[0] = "erm";
     }
 
-    public void setBossSize(int widthMultiplier, int heightMultiplier) {
-        bossWidth = gamePanel.tileSize * widthMultiplier;
-        bossHeight = gamePanel.tileSize * heightMultiplier;
-        collisionBounds = new Rectangle(13 * scaleFactor, 17 * scaleFactor, 56 * scaleFactor, (int)(87 * 1.8));
+    private void setBossSize(int wMul, int hMul) {
+        bossWidth  = gamePanel.tileSize * wMul;
+        bossHeight = gamePanel.tileSize * hMul;
+
+        // decide your actual collision box here:
+        // e.g. offset it from the sprite's top-left by (offsetX,offsetY),
+        // and make it as big as you need (cbW×cbH)
+        int offsetX = 35 * scaleFactor;
+        int offsetY = 20 * scaleFactor;
+        int cbW     = 40 * scaleFactor;
+        int cbH     = (int)(87);
+
+        // 1) set the collisionBounds rectangle
+        collisionBounds = new Rectangle(offsetX, offsetY, cbW, cbH);
+
+        // 2) ALSO update the defaults that CollisionChecker will restore
+        solidAreaDefaultX = offsetX;
+        solidAreaDefaultY = offsetY;
     }
 
     @Override
     public void update() {
         if (hp < 1) {
-            collisonOn = false;
-            isBeatened = true;
-
-            for (EventObject ev : gamePanel.eventObjects) {
-                if (ev instanceof DoorEvent) {
-                    DoorEvent door = (DoorEvent) ev;
-                    if (door.getNextMap() == 2) {
-                        door.promptMessage = "Enter the forest..?";
-                    }
-                }
-            }
+            collisonOn  = false;
+            isBeatened  = true;
             return;
         }
 
-        // Boss remains idle.
         collisonOn = true;
         spriteCounter++;
         if (spriteCounter > 10) {
             spriteNumber++;
-            if (spriteNumber > 6) {
+            if (spriteNumber > idleFrames.length) {
                 spriteNumber = 1;
             }
             spriteCounter = 0;
@@ -105,61 +97,43 @@ public class ENEMY_Boss01 extends Enemy {
 
     @Override
     public void draw(Graphics2D g2d) {
+
         if (hp < 1) {
             return;
         }
 
-        BufferedImage image = null;
         int screenX = worldx - gamePanel.player.worldx + gamePanel.player.screenX;
         int screenY = worldy - gamePanel.player.worldy + gamePanel.player.screenY;
 
-        // Only draw if within the player's view.
-        if (worldx + bossWidth > gamePanel.player.worldx - gamePanel.player.screenX &&
-                worldx - bossWidth < gamePanel.player.worldx + gamePanel.player.screenX &&
+        if (worldx + bossWidth  > gamePanel.player.worldx - gamePanel.player.screenX &&
+                worldx - bossWidth  < gamePanel.player.worldx + gamePanel.player.screenX &&
                 worldy + bossHeight > gamePanel.player.worldy - gamePanel.player.screenY &&
                 worldy - bossHeight < gamePanel.player.worldy + gamePanel.player.screenY) {
 
-            switch (spriteNumber) {
-                case 1: image = down1; break;
-                case 2: image = down2; break;
-                case 3: image = down3; break;
-                case 4: image = down4; break;
-                case 5: image = down5; break;
-                case 6: image = down6; break;
-            }
-            g2d.drawImage(image, screenX, screenY, bossWidth, bossHeight, null);
+            BufferedImage frame = idleFrames[spriteNumber - 1];
+            g2d.drawImage(frame, screenX, screenY, (int)(bossWidth * 1.8), (int)(bossHeight * 1.2), null);
         }
     }
 
     @Override
     public void speak() {
-        // Only proceed if we're not already showing a dialogue option.
         if (!gamePanel.ui.showDialogueOptions) {
-            // Check if there is a dialogue line to show.
-            if (dialogues[dialogueIndex] == null) { // No more dialogue lines.
+            if (dialogues[dialogueIndex] == null) {
                 if (optionDialog != null && !optionDialog.isEmpty()) {
-                    // For enemies: trigger a yes/no option prompt.
                     gamePanel.ui.optionText = optionDialog;
                     gamePanel.ui.showDialogueOptions = true;
-                    System.out.println("Dialogue complete: showing option prompt (" + optionDialog + ")");
-                    // (Do not leave dialogue state until the player answers the prompt.)
                 } else {
-                    // If no option is defined, return to playState.
                     gamePanel.gameState = gamePanel.playState;
                 }
-                // Reset the dialogue index so next conversation starts at the beginning.
                 dialogueIndex = 0;
             } else {
-                // There is another dialogue line: show it.
-                gamePanel.ui.currentDialogue = dialogues[dialogueIndex];
-                dialogueIndex++;
+                gamePanel.ui.currentDialogue = dialogues[dialogueIndex++];
             }
         }
     }
 
     @Override
     public void performBattleAction() {
-        // Implement enemy-specific battle logic here.
     }
 
     @Override
@@ -193,9 +167,9 @@ public class ENEMY_Boss01 extends Enemy {
         }
         // same offsets as before:
         g2.drawImage(frame,
-                x - gamePanel.tileSize*2,
+                (int)(x - gamePanel.tileSize*4.1),
                 y - gamePanel.tileSize*3,
-                gamePanel.tileSize*5, gamePanel.tileSize*5,
+                gamePanel.tileSize*8, gamePanel.tileSize*6,
                 null
         );
     }
@@ -210,6 +184,7 @@ public class ENEMY_Boss01 extends Enemy {
         return 1;
     }
 
+
     public void triggerBattleAnimation(String state, int duration) {
         // e.g.
         this.battState       = state;
@@ -217,5 +192,4 @@ public class ENEMY_Boss01 extends Enemy {
         this.battSpriteCounter = 0;
         // optionally lock it so updateBattleAnimation knows
     }
-
 }
