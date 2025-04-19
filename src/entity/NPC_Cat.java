@@ -12,15 +12,13 @@ public class NPC_Cat extends Entity {
     private boolean hasGivenItem = false; // only give items once
     private int npcWidth;
     private int npcHeight;
-	
-    
+    private boolean finalDialoguesStarted = false;
 
     public NPC_Cat(GamePanel gamePanel) {
         super(gamePanel);
         direction = "down";
         speed = 0; // cat doesn't move
         isBeatened = false;
-        
 
         // Enlarge sprite to 2x tileSize (for example)
         npcWidth = (int)(gamePanel.tileSize * 1.3);
@@ -45,21 +43,26 @@ public class NPC_Cat extends Entity {
     }
 
     public void setDialogue() {
-    	
         // Add multiple lines
-    	
-    
-    	dialogues[0] = "0w0 \nI am glad that you finally woke up. ";
-    	dialogues[1] = "030 \nYou are the hero I summoned. ";
-        dialogues[2] = ">w< \nI have a task for you.\nThere are two monsters in the forest. ";
-        dialogues[3] = "@w@ \nThey are killing my friends.  \nPlease defeat them!" ;
-        dialogues[4] = ">w< \nI will send you back home after you defeating them. ";
-        dialogues[5] = "0w0 \nThese potions will help you.\nPress [e] to open the inventory.\nYou can drink them to heal! ";
-        dialogues[6] = ">w0 \nCome back here after defeating the monsters! \nI will wait you here!";
-    	// If you have more lines, add them.
-    	
+        if (gamePanel.npc[2][0] == null && !gamePanel.portalNotYetAdded) {
+            finalDialoguesStarted = true;
+            dialogues[0] = "0w0 \nYou did it! You defeated all the monsters!";
+            dialogues[1] = ">w< \nThank you for saving my friends!";
+            dialogues[2] = "030 \nOur land is safe again because of you.";
+            dialogues[3] = ">w< \nFarewell, brave hero!";
+            dialogues[4] = "0w0 \nMeow~ The adventure ends here!";
+            dialogues[5] = null;
+            dialogues[6] = null;
+        } else {
+            dialogues[0] = "0w0 \nI am glad that you finally woke up. ";
+            dialogues[1] = "030 \nYou are the hero I summoned. ";
+            dialogues[2] = ">w< \nI have a task for you.\nThere are two monsters in the forest. ";
+            dialogues[3] = "@w@ \nThey are killing my friends.  \nPlease defeat them!";
+            dialogues[4] = ">w< \nI will send you back home after you defeating them. ";
+            dialogues[5] = "0w0 \nThese potions will help you.\nPress [e] to open the inventory.\nYou can drink them to heal! ";
+            dialogues[6] = ">w0 \nCome back here after defeating the monsters! \nI will wait you here!";
+        }
     }
-    	
 
     @Override
     public void update() {
@@ -69,8 +72,12 @@ public class NPC_Cat extends Entity {
             spriteNumber = (spriteNumber == 1) ? 2 : 1;
             spriteCounter = 0;
         }
+        
+        // Check if we should switch to final dialogues
+        if (gamePanel.npc[2][0] == null && !gamePanel.portalNotYetAdded && !finalDialoguesStarted) {
+            setDialogue();
+        }
     }
-    
 
     @Override
     public void draw(Graphics2D g2) {
@@ -84,10 +91,10 @@ public class NPC_Cat extends Entity {
                 worldy - npcHeight < gamePanel.player.worldy + gamePanel.player.screenY) {
 
             BufferedImage image;
-			if (spriteNumber == 1)
-				image = down1;
-			else
-				image = down2;
+            if (spriteNumber == 1)
+                image = down1;
+            else
+                image = down2;
             g2.drawImage(image, screenX, screenY, npcWidth, npcHeight, null);
         }
     }
@@ -97,22 +104,25 @@ public class NPC_Cat extends Entity {
         if (dialogueIndex < 0) {
             dialogueIndex = 0;
         }
-        if (gamePanel.npc[2][0] == null && gamePanel.portalNotYetAdded == false) {
-       	 	dialogues[0] = "0w0 \nYou did it! You defeated all the monsters!";
-            dialogues[1] = ">w< \nThank you for saving my friends!";
-            dialogues[2] = "030 \nOur land is safe again because of you.";
-            dialogues[3] = ">w< \nFarewell, brave hero!";
-            dialogues[4] = "0w0 \nMeow~ The adventure ends here!";
-            dialogues[5] = null;
-            dialogues[6] = null;
+
+        // Check if we should switch to final dialogues
+        if (gamePanel.npc[2][0] == null && !gamePanel.portalNotYetAdded && !finalDialoguesStarted) {
+            setDialogue();
         }
+
         if (dialogues[dialogueIndex] != null) {
             // Show the next dialogue line.
             gamePanel.ui.currentDialogue = dialogues[dialogueIndex];
+            
+            // Check if this is the final line
+            if (finalDialoguesStarted && dialogues[dialogueIndex].equals("0w0 \nMeow~ The adventure ends here!")) {
+                // Immediately return to title after showing this line
+                gamePanel.gameState = gamePanel.titleState;
+                return;
+            }
+            
             dialogueIndex++;
             gamePanel.gameState = gamePanel.dialogueState;
-         
-                
         } else {
             // All dialogue lines have been shown.
             if (!hasGivenItem) {
@@ -128,14 +138,11 @@ public class NPC_Cat extends Entity {
                 dialogues[0] = "I have nothing more to say.\nGood luck!";
                 dialogues[1] = null;
                 dialogues[2] = null;
-             
-             
             }
             
-            // Reset dialogue and (optionally) wait for player to press Enter to exit dialogue.
+            // Reset dialogue
             dialogueIndex = 0;
             gamePanel.ui.currentDialogue = "";
-            // The NPC does NOT trigger a yes/no prompt so remain in dialogueState until the notification is dismissed.
             gamePanel.gameState = gamePanel.playState;
         }
     }
