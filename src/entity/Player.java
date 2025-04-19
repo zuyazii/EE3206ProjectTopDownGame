@@ -138,10 +138,6 @@ public class Player extends Entity {
             collisonOn = false;
             gamePanel.collisionChecker.checkTile(this);
 
-            // CHECK OBJECT COLLISION
-            int objectIndex = gamePanel.collisionChecker.checkObject(this, true);
-            pickUpObject(objectIndex);
-
             // CHECK NPC COLLISION
             int npcIndex = gamePanel.collisionChecker.checkEntity(this, gamePanel.npc[gamePanel.currentMap]);
             interactNPC(npcIndex);

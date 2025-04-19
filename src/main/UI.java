@@ -5,9 +5,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
-import entity.Player;
-import object.OBJ_Key;
-
 import javax.imageio.ImageIO;
 
 public class UI {
@@ -504,11 +501,6 @@ public class UI {
         // TITLE TEXT COLOR
         g2.setColor(Color.white);
         g2.drawString(text, x, y);
-
-        // MAIN CHARACTER IMAGE
-//        x = gp.screenWidth / 2 - (gp.tileSize * 2) / 2;
-//        y += gp.tileSize * 1.6;
-//        g2.drawImage(gp.player.down1, x, y, gp.tileSize * 2, gp.tileSize * 2, null);
 
         // MENU
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48f));

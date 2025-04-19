@@ -7,7 +7,6 @@ import entity.Player;
 import event.DoorEvent;
 import event.EventObject;
 import event.PortalEvent;
-import object.SuperObject;
 import tiles.TileManager;
 
 import javax.swing.*;
@@ -53,7 +52,6 @@ public class GamePanel extends JPanel implements Runnable {
 
     // ENTITY AND OBJECT
     public Player player = new Player(this, keyHandler);
-    public SuperObject superObject[][] = new SuperObject[maxMap][10];
     public Entity npc[][] = new Entity[maxMap][10];
 
     // GAME STATE
@@ -269,13 +267,6 @@ public class GamePanel extends JPanel implements Runnable {
             }
 
             player.draw(g2d);
-
-            // OBJECT
-            for (int i = 0; i < superObject.length; i++) {
-                if (superObject[currentMap][i] != null) {
-                    superObject[currentMap][i].draw(g2d, this);
-                }
-            }
 
             // Draw event objects (like doors).
             for (EventObject event : eventObjects) {

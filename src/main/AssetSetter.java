@@ -69,20 +69,6 @@ public class AssetSetter {
                         gamePanel,
                         true
                 );
-//                blackholeDoor2.promptMessage = "Back to the pond?";
-//                gamePanel.addEventObject(blackholeDoor2);
-//
-//                PortalEvent portal1 = new PortalEvent(
-//                        35 * gamePanel.tileSize,
-//                        19 * gamePanel.tileSize,
-//                        gamePanel.tileSize,
-//                        gamePanel.tileSize * 3,
-//                        1,  // next map number
-//                        gamePanel
-//                );
-//                portal1.promptMessage = "Back to the castle?";
-//                gamePanel.addEventObject(portal1);
-
                 break;
         }
     }
@@ -90,14 +76,9 @@ public class AssetSetter {
     public void setNPC(int currentMap) {
         switch (currentMap) {
             case 0:
-//                gamePanel.npc[0][0] = new ENEMY_Boss01(gamePanel);
-//                gamePanel.npc[0][0].worldx = gamePanel.tileSize * 24;
-//                gamePanel.npc[0][0].worldy = gamePanel.tileSize * 22;
-
                 gamePanel.npc[currentMap][0] = new NPC_Cat(gamePanel);
                 gamePanel.npc[currentMap][0].worldx = (int)(gamePanel.tileSize * 24.9);
                 gamePanel.npc[currentMap][0].worldy = gamePanel.tileSize * 24;
-
                 break;
             case 1:
                 gamePanel.npc[currentMap][0] = new ENEMY_Boss01(gamePanel);

@@ -308,12 +308,8 @@ public class ENEMY_Boss01 extends Enemy {
     }
 
     public BufferedImage flipHorizontally(BufferedImage src) {
-        // 1. 建立一個水平縮放 -1 的 AffineTransform
         AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
-        // 2. 將座標系向右平移一個影像寬度，否則圖像會被畫到負座標
         tx.translate(-src.getWidth(), 0);
-
-        // 3. 建立對應的轉換操作，選擇最近鄰或雙線性插值
         AffineTransformOp op = new AffineTransformOp(
                 tx,
                 AffineTransformOp.TYPE_NEAREST_NEIGHBOR

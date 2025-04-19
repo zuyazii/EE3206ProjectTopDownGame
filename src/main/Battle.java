@@ -634,9 +634,6 @@ public class Battle {
             if (pendingDefender instanceof Player) {
                 gp.gameState = gp.gameOverState;
             } else {
-                // Instead of immediately returning to playState, if the enemy is defeated,
-                // let the battle notification remain until dismissed.
-                // gp.gameState = gp.playState;
             }
             return;
         }
