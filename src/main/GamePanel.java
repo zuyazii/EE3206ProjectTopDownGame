@@ -73,7 +73,7 @@ public class GamePanel extends JPanel implements Runnable {
     private int nextMap;
     private boolean mapChanged = false;  // to track when the map switch occurs
 
-    private boolean portalNotYetAdded = true;
+    public boolean portalNotYetAdded = true;
 
     // --- Event Objects ---
     public List<EventObject> eventObjects = new ArrayList<>();
