@@ -36,7 +36,7 @@ public class ENEMY_Boss01 extends Enemy {
         direction = "down";
         enemyNum = 1;
 
-        maxHP = 20;
+        maxHP = 60;
         hp = maxHP;
         
 
@@ -58,11 +58,11 @@ public class ENEMY_Boss01 extends Enemy {
         down6 = setup("/enemies/boss_02/01_demon_idle/demon_idle_6");
 
         left1 = setup("/enemies/boss_02/02_demon_walk/demon_walk_1");
-        left2 = setup("/enemies/boss_02/02_demon_walk/demon_walk_3");
+        left2 = setup("/enemies/boss_02/02_demon_walk/demon_walk_4");
         
         right1 = setup("/enemies/boss_02/02_demon_walk/demon_walk_1");
         right1 = flipHorizontally(right1);
-        right2 = setup("/enemies/boss_02/02_demon_walk/demon_walk_3");
+        right2 = setup("/enemies/boss_02/02_demon_walk/demon_walk_4");
         right2 = flipHorizontally(right2);
 
         // Add to your getImage() method
@@ -325,7 +325,6 @@ public class ENEMY_Boss01 extends Enemy {
 
     /** Allow subclasses to do per‑frame battle‐animation updates. */
     public void updateBattleAnimation() {
-        // default: do nothing
+    	if (defeated) return;// default: do nothing
     }
 }
-

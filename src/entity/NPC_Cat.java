@@ -48,8 +48,8 @@ public class NPC_Cat extends Entity {
         dialogues[2] = ">w< \nI have a task for you.\nThere are two monsters in the forest. ";
         dialogues[3] = "@w@ \nThey are killing my friends.  \nPlease defeat them!" ;
         dialogues[4] = ">w< \nI will send you back home after you defeating them. ";
-        dialogues[5] = "0w0 \nThese potions will help you.\nDrink them to heal! ";
-        
+        dialogues[5] = "0w0 \nThese potions will help you.\nPress [e] to open the inventory.\nYou can drink them to heal! ";
+        dialogues[6] = ">w0 \nCome back here after defeating the monsters! \nI will wait you here!";
         // If you have more lines, add them.
     }
 
